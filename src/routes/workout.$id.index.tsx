@@ -46,14 +46,19 @@ function WorkoutDetail() {
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <Link
-            to="/workout/$id/run"
-            params={{ id: workout.id }}
-            className="myo-btn col-span-2 py-4 text-lg"
-            disabled={workout.activities.length === 0 as any}
-          >
-            <Play className="h-5 w-5" /> Start Workout
-          </Link>
+          {workout.activities.length > 0 ? (
+            <Link
+              to="/workout/$id/run"
+              params={{ id: workout.id }}
+              className="myo-btn col-span-2 py-4 text-lg"
+            >
+              <Play className="h-5 w-5" /> Start Workout
+            </Link>
+          ) : (
+            <button disabled className="myo-btn col-span-2 py-4 text-lg">
+              <Play className="h-5 w-5" /> Add activities to start
+            </button>
+          )}
           <Link to="/workout/$id/edit" params={{ id: workout.id }} className="myo-btn-ghost">
             <Pencil className="h-4 w-4" /> Edit
           </Link>
