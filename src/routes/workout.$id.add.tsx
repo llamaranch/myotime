@@ -209,16 +209,48 @@ function AddActivity() {
           />
         )}
 
-        {showCustom && (
+        {showCustom && (() => {
+          const q = customName.trim().toLowerCase();
+          const suggestions = q
+            ? all
+                .filter(a => a.name.toLowerCase().includes(q) && a.name.toLowerCase() !== q)
+                .slice(0, 6)
+            : [];
+          return (
           <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4">
             <div className="myo-card w-full max-w-sm p-5">
               <h3 className="mb-3 text-lg font-semibold">Custom Activity</h3>
-              <input
-                autoFocus value={customName}
-                onChange={e => setCustomName(e.target.value)}
-                placeholder="Activity name"
-                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 outline-none focus:border-accent"
-              />
+              <div className="relative">
+                <input
+                  autoFocus value={customName}
+                  onChange={e => setCustomName(e.target.value)}
+                  placeholder="Activity name"
+                  className="w-full rounded-lg border border-border bg-secondary px-3 py-2 outline-none focus:border-accent"
+                />
+                {suggestions.length > 0 && (
+                  <ul className="myo-card absolute z-10 mt-1 max-h-56 w-full overflow-auto p-1">
+                    {suggestions.map(a => (
+                      <li key={a.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCustom(false);
+                            setCustomName("");
+                            setCustomFav(false);
+                            onPick(a);
+                          }}
+                          className="w-full rounded-md px-3 py-2 text-left text-sm hover:bg-secondary"
+                        >
+                          {a.name}
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            {a.source === "custom" ? "custom" : "library"}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <label className="mt-3 flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={customFav} onChange={e => setCustomFav(e.target.checked)} />
                 Save as favorite
@@ -229,7 +261,8 @@ function AddActivity() {
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
