@@ -1,0 +1,371 @@
+name,body_parts,types
+Rest,other,other
+Push-ups,"arms,chest,core","resistance,calisthenics"
+Wide Push-ups,"arms,chest","resistance,calisthenics"
+Diamond Push-ups,"arms,chest","resistance,calisthenics"
+Decline Push-ups,"arms,chest,core","resistance,calisthenics"
+Incline Push-ups,"arms,chest","resistance,calisthenics"
+Knee Push-ups,"arms,chest","resistance,calisthenics"
+Pike Push-ups,"arms,chest","resistance,calisthenics"
+Hindu Push-ups,"arms,chest,core","resistance,calisthenics"
+Clap Push-ups,"arms,chest","resistance,calisthenics,cardio"
+Spider-Man Push-ups,"arms,chest,core","resistance,calisthenics"
+Archer Push-ups,"arms,chest","resistance,calisthenics"
+Pull-ups,"arms,back","resistance,calisthenics"
+Chin-ups,"arms,back","resistance,calisthenics"
+Wide-grip Pull-ups,"arms,back","resistance,calisthenics"
+Negative Pull-ups,"arms,back","resistance,calisthenics"
+Australian Rows,"arms,back","resistance,calisthenics"
+Inverted Rows,"arms,back","resistance,calisthenics"
+Dips,"arms,chest","resistance,calisthenics"
+Bench Dips,arms,"resistance,calisthenics"
+Tricep Dips,arms,"resistance,calisthenics"
+Bicep Curls,arms,resistance
+Hammer Curls,arms,resistance
+Tricep Extensions,arms,resistance
+Tricep Kickbacks,arms,resistance
+Skull Crushers,arms,resistance
+Shoulder Press,arms,resistance
+Overhead Press,arms,resistance
+Arnold Press,arms,resistance
+Lateral Raises,arms,resistance
+Front Raises,arms,resistance
+Rear Delt Flies,"arms,back",resistance
+Upright Rows,"arms,back",resistance
+Shrugs,"arms,back",resistance
+Wrist Curls,arms,resistance
+Reverse Wrist Curls,arms,resistance
+Squats,"legs,full body","resistance,calisthenics"
+Bodyweight Squats,legs,calisthenics
+Goblet Squats,legs,resistance
+Sumo Squats,legs,"resistance,calisthenics"
+Jump Squats,"legs,full body","calisthenics,cardio"
+Pistol Squats,legs,calisthenics
+Bulgarian Split Squats,legs,"resistance,calisthenics"
+Split Squats,legs,"resistance,calisthenics"
+Cossack Squats,legs,"calisthenics,mobility"
+Wall Sit,legs,isometric
+Lunges,legs,"resistance,calisthenics"
+Forward Lunges,legs,calisthenics
+Reverse Lunges,legs,calisthenics
+Walking Lunges,legs,calisthenics
+Lateral Lunges,legs,"calisthenics,mobility"
+Curtsy Lunges,legs,calisthenics
+Jumping Lunges,"legs,full body","calisthenics,cardio"
+Step-ups,legs,calisthenics
+Box Jumps,"legs,full body","calisthenics,cardio"
+Calf Raises,legs,"resistance,calisthenics"
+Single-leg Calf Raises,legs,calisthenics
+Donkey Calf Raises,legs,resistance
+Glute Bridges,"legs,core","calisthenics,resistance"
+Single-leg Glute Bridge,"legs,core",calisthenics
+Hip Thrusts,"legs,core","calisthenics,resistance"
+Frog Pumps,"legs,core",calisthenics
+Fire Hydrants,"legs,core",calisthenics
+Donkey Kicks,"legs,core",calisthenics
+Romanian Deadlifts,"legs,back",resistance
+Deadlifts,"full body,back,legs",resistance
+Sumo Deadlifts,"legs,back",resistance
+Single-leg Deadlifts,"legs,back","resistance,calisthenics"
+Good Mornings,"legs,back",resistance
+Hip Abductions,legs,calisthenics
+Hip Adductions,legs,calisthenics
+Leg Curls,legs,resistance
+Leg Extensions,legs,resistance
+Leg Press,legs,resistance
+Plank,"core,full body",isometric
+High Plank,"core,arms",isometric
+Side Plank,core,isometric
+Reverse Plank,"core,arms",isometric
+Plank Up-downs,"core,arms",calisthenics
+Plank Shoulder Taps,"core,arms",calisthenics
+Plank Jacks,"core,full body","calisthenics,cardio"
+Plank Hip Dips,core,calisthenics
+Forearm Plank,core,isometric
+Sit-ups,core,calisthenics
+Crunches,core,calisthenics
+Reverse Crunches,core,calisthenics
+Bicycle Crunches,core,calisthenics
+Russian Twists,core,calisthenics
+V-ups,core,calisthenics
+Toe Touches,core,calisthenics
+Leg Raises,core,calisthenics
+Hanging Leg Raises,core,calisthenics
+Flutter Kicks,core,calisthenics
+Scissor Kicks,core,calisthenics
+Mountain Climbers,"core,full body","calisthenics,cardio"
+Cross-body Mountain Climbers,"core,full body","calisthenics,cardio"
+Dead Bug,core,calisthenics
+Bird Dog,"core,back",calisthenics
+Hollow Hold,core,isometric
+Hollow Rocks,core,calisthenics
+Superman,"back,core","calisthenics,isometric"
+Superman Hold,"back,core",isometric
+Y-T-W Raises,back,calisthenics
+Cobra Pose,"back,core","yoga,mobility"
+Cat-Cow,"back,core","yoga,mobility"
+Bridge Pose,"back,core,legs","yoga,mobility"
+L-sit,"core,arms",isometric
+Tuck Hold,core,isometric
+Boat Pose,core,"yoga,isometric"
+Bear Crawl,"full body,core",calisthenics
+Crab Walk,"full body,arms",calisthenics
+Inchworm,"full body,core","calisthenics,mobility"
+Burpees,full body,"calisthenics,cardio"
+Half Burpees,full body,"calisthenics,cardio"
+Squat Thrusts,full body,"calisthenics,cardio"
+Jumping Jacks,full body,cardio
+Star Jumps,full body,cardio
+Seal Jumps,full body,cardio
+High Knees,"legs,full body",cardio
+Butt Kicks,"legs,full body",cardio
+Skater Jumps,"legs,full body",cardio
+Tuck Jumps,"legs,full body",cardio
+Jumping Rope,full body,cardio
+Shadow Boxing,"arms,full body",cardio
+Running in Place,"legs,full body",cardio
+Jogging in Place,"legs,full body",cardio
+Sprints,"legs,full body",cardio
+Lateral Shuffles,"legs,full body",cardio
+Jump Rope Doubles,full body,cardio
+Squat Jumps,"legs,full body","calisthenics,cardio"
+Burpee Pull-ups,full body,"calisthenics,cardio"
+Thrusters,full body,resistance
+Clean and Press,full body,resistance
+Kettlebell Swings,"full body,back","resistance,cardio"
+Goblet Carry,"full body,core",resistance
+Farmer's Walk,"full body,arms",resistance
+Suitcase Carry,"full body,core",resistance
+Turkish Get-up,full body,resistance
+Bent-over Rows,"arms,back",resistance
+Single-arm Rows,"arms,back",resistance
+T-bar Rows,"arms,back",resistance
+Seated Rows,"arms,back",resistance
+Lat Pulldowns,"arms,back",resistance
+Face Pulls,"arms,back",resistance
+Bench Press,"arms,chest",resistance
+Incline Bench Press,"arms,chest",resistance
+Decline Bench Press,"arms,chest",resistance
+Dumbbell Press,"arms,chest",resistance
+Dumbbell Flies,chest,resistance
+Cable Crossovers,chest,resistance
+Pec Deck,chest,resistance
+Chest Squeeze,chest,isometric
+Wall Push,chest,isometric
+Neck Rolls,other,mobility
+Shoulder Rolls,arms,mobility
+Arm Circles,arms,mobility
+Wrist Circles,arms,mobility
+Hip Circles,"legs,core",mobility
+Ankle Circles,legs,mobility
+Leg Swings,legs,mobility
+Side Leg Swings,legs,mobility
+Torso Twists,core,mobility
+Side Bends,core,mobility
+Standing Forward Fold,"back,legs",mobility
+Seated Forward Fold,"back,legs","mobility,yoga"
+Butterfly Stretch,legs,"mobility,yoga"
+Pigeon Pose,legs,"mobility,yoga"
+Pigeon Stretch,legs,"mobility,yoga"
+Lizard Pose,legs,"mobility,yoga"
+Frog Stretch,legs,"mobility,yoga"
+Hip Flexor Stretch,legs,mobility
+Quad Stretch,legs,mobility
+Hamstring Stretch,legs,mobility
+Calf Stretch,legs,mobility
+Glute Stretch,legs,mobility
+Figure Four Stretch,legs,mobility
+Child's Pose,back,"mobility,yoga"
+Downward Dog,full body,"mobility,yoga"
+Upward Dog,"core,back","mobility,yoga"
+Cobra Stretch,"core,back","mobility,yoga"
+Sphinx Pose,"core,back","mobility,yoga"
+Camel Pose,"core,back","mobility,yoga"
+Seated Twist,core,"mobility,yoga"
+Supine Twist,"core,back","mobility,yoga"
+Thread the Needle,"back,arms","mobility,yoga"
+World's Greatest Stretch,full body,mobility
+Doorway Stretch,"chest,arms",mobility
+Wall Slides,"back,arms",mobility
+Cross-body Shoulder Stretch,arms,mobility
+Tricep Stretch,arms,mobility
+Wrist Stretch,arms,mobility
+Neck Stretch,other,mobility
+Standing Side Stretch,core,mobility
+Cat Stretch,back,mobility
+Cow Stretch,back,mobility
+Mountain Pose,full body,yoga
+Tree Pose,"legs,core",yoga
+Warrior I,"legs,full body",yoga
+Warrior II,"legs,full body",yoga
+Warrior III,"legs,core",yoga
+Triangle Pose,"legs,core","yoga,mobility"
+Half Moon Pose,"legs,core",yoga
+Chair Pose,legs,"yoga,isometric"
+Eagle Pose,"legs,core","yoga,isometric"
+Crow Pose,"arms,core","yoga,isometric"
+Side Crow,"arms,core","yoga,isometric"
+Headstand,"arms,core","yoga,isometric"
+Handstand,"arms,core,full body","yoga,isometric"
+Handstand Hold,"arms,core,full body",isometric
+Wall Handstand,"arms,core",isometric
+Forearm Stand,"arms,core",isometric
+Shoulder Stand,"core,full body",yoga
+Plow Pose,"back,core,legs",yoga
+Wheel Pose,"full body,back","yoga,mobility"
+Bow Pose,"back,core,legs",yoga
+Locust Pose,"back,core,legs","yoga,isometric"
+Reclined Hero,legs,"mobility,yoga"
+Hero Pose,legs,yoga
+Lotus Pose,legs,yoga
+Half Lotus,legs,yoga
+Easy Pose,"legs,other",yoga
+Sun Salutation A,full body,"yoga,mobility,cardio"
+Sun Salutation B,full body,"yoga,mobility,cardio"
+Vinyasa Flow,full body,"yoga,mobility"
+Chaturanga,"arms,chest,core","yoga,calisthenics"
+Side Angle Pose,"legs,core","yoga,mobility"
+Reverse Warrior,"legs,core",yoga
+Goddess Pose,"legs,core","yoga,isometric"
+Garland Pose,legs,"yoga,mobility"
+Wide-legged Forward Fold,"legs,back","yoga,mobility"
+Standing Split,legs,"yoga,mobility"
+Dancer Pose,"legs,core,full body","yoga,mobility"
+Boxing Jab,"arms,full body",cardio
+Boxing Cross,"arms,full body",cardio
+Boxing Hook,"arms,full body",cardio
+Boxing Uppercut,"arms,full body",cardio
+Punch Combo,"arms,full body",cardio
+Front Kicks,"legs,full body","cardio,calisthenics"
+Side Kicks,"legs,full body","cardio,calisthenics"
+Roundhouse Kicks,"legs,full body","cardio,calisthenics"
+Back Kicks,"legs,full body","cardio,calisthenics"
+Knee Strikes,"legs,full body",cardio
+Mule Kicks,"legs,arms,full body",calisthenics
+Squat to Press,full body,resistance
+Renegade Rows,"arms,back,core",resistance
+Devil Press,full body,"resistance,cardio"
+Man Maker,full body,"resistance,cardio"
+Wall Walks,"arms,full body",calisthenics
+Handstand Push-ups,"arms,full body",calisthenics
+Pike Walks,"arms,core",mobility
+Crab Reaches,"core,full body",calisthenics
+Spiderman Lunges,"legs,core",mobility
+Walking Knee Hugs,legs,mobility
+Walking Quad Stretch,legs,mobility
+Toy Soldiers,legs,mobility
+A-Skips,"legs,full body",cardio
+B-Skips,"legs,full body",cardio
+Carioca,"legs,full body",cardio
+Lateral Bounds,"legs,full body","cardio,calisthenics"
+Broad Jumps,"legs,full body","calisthenics,cardio"
+Pogo Jumps,"legs,full body",cardio
+Single-leg Hops,"legs,full body",cardio
+Toe Taps,"legs,full body",cardio
+Heel Taps,"legs,full body",cardio
+Side-to-side Hops,"legs,full body",cardio
+Speed Skaters,"legs,full body","cardio,calisthenics"
+Bear Hold,"core,full body",isometric
+Side Plank Hold,core,isometric
+L-sit Hold,"core,arms",isometric
+Hollow Body Hold,core,isometric
+Arch Hold,"back,core",isometric
+Glute Bridge Hold,"legs,core",isometric
+Wall Sit Hold,legs,isometric
+Horse Stance,legs,isometric
+Iron Cross Hold,"arms,core",isometric
+Static Lunge,legs,isometric
+Static Squat,legs,isometric
+Reverse Snow Angels,"back,arms",calisthenics
+Prone Y Raise,"back,arms",calisthenics
+Prone T Raise,"back,arms",calisthenics
+Prone W Raise,"back,arms",calisthenics
+Scapular Pulls,"arms,back",calisthenics
+Scapular Push-ups,"arms,chest,back",calisthenics
+Dead Hangs,"arms,back",isometric
+Active Hangs,"arms,back",isometric
+Tuck Front Lever,"arms,back,core",isometric
+Tuck Back Lever,"arms,back,core",isometric
+Skin the Cat,"arms,back,core",calisthenics
+Muscle-ups,"arms,back,full body",calisthenics
+Front Lever,"arms,back,core",isometric
+Back Lever,"arms,back,core",isometric
+Planche Lean,"arms,chest,core",isometric
+Tuck Planche,"arms,chest,core",isometric
+Box Step-overs,"legs,full body","cardio,calisthenics"
+Step-up Knee Drive,"legs,core","calisthenics,cardio"
+Reverse Lunge to Knee Drive,"legs,core",calisthenics
+Lunge with Twist,"legs,core","calisthenics,mobility"
+Squat to Lateral Raise,full body,resistance
+Squat to Curl,full body,resistance
+Push-up to T-rotation,"arms,chest,core",calisthenics
+Cossack to Cossack,legs,"mobility,calisthenics"
+Crab to Plank,"core,full body","calisthenics,mobility"
+Beast to Crab,"core,full body","calisthenics,mobility"
+Single-leg Romanian Deadlift,"legs,core",calisthenics
+Marching in Place,"legs,full body",cardio
+March with Knee Lift,"legs,core",cardio
+Cross Punches,"arms,core",cardio
+Ski Jumps,"legs,full body",cardio
+Football Drills,"legs,full body",cardio
+Ladder Drills,"legs,full body",cardio
+Box Squat,legs,resistance
+Pause Squat,legs,resistance
+Kang Squat,"legs,back","resistance,mobility"
+Cyclist Squat,legs,resistance
+Heels-elevated Squat,legs,resistance
+Sissy Squat,legs,calisthenics
+Shrimp Squat,legs,calisthenics
+Nordic Curl,legs,calisthenics
+Reverse Nordic Curl,legs,calisthenics
+Sliding Leg Curl,legs,calisthenics
+Single-leg Bridge,"legs,core",calisthenics
+March Bridge,"legs,core",calisthenics
+Banded Walks,legs,calisthenics
+Lateral Banded Walks,legs,calisthenics
+Banded Clamshells,legs,calisthenics
+Standing Clamshells,legs,calisthenics
+Quadruped Hip Extension,"legs,core",calisthenics
+Reverse Hyperextensions,"back,legs",calisthenics
+Back Extensions,"back,core",calisthenics
+Hyperextensions,"back,core",calisthenics
+Glute Ham Raise,legs,calisthenics
+Goblet Reverse Lunge,legs,resistance
+Box Pistol Squat,legs,calisthenics
+Assisted Pistol Squat,legs,calisthenics
+Side Lunge to Curtsy,legs,calisthenics
+Pulse Squats,legs,calisthenics
+Pulse Lunges,legs,calisthenics
+Plank to Push-up,"arms,chest,core",calisthenics
+Reaching Plank,"core,full body",calisthenics
+Plank with Leg Lift,"core,legs",calisthenics
+Plank with Arm Lift,"core,arms",calisthenics
+Spider Plank,"core,full body",calisthenics
+Stir the Pot,"core,full body",isometric
+Pallof Press,core,isometric
+Dragon Flag,core,calisthenics
+Windshield Wipers,core,calisthenics
+Toe-to-bar,core,calisthenics
+Knees-to-elbows,core,calisthenics
+Hanging Knee Raises,core,calisthenics
+Cable Wood Chops,core,resistance
+Standing Crunches,core,calisthenics
+Standing Bicycles,core,calisthenics
+Standing Oblique Crunches,core,calisthenics
+Side Bend Crunches,core,calisthenics
+Toe Reaches,core,calisthenics
+Sit-up to Stand,"core,full body",calisthenics
+Hand Release Push-ups,"arms,chest,core",calisthenics
+Tempo Push-ups,"arms,chest",calisthenics
+Plyo Push-ups,"arms,chest","calisthenics,cardio"
+Box Push-ups,"arms,chest",calisthenics
+Tiger Push-ups,"arms,chest,core",calisthenics
+Pseudo Planche Push-ups,"arms,chest,core",calisthenics
+Eccentric Pull-ups,"arms,back",calisthenics
+Tempo Squats,legs,calisthenics
+Pause Push-ups,"arms,chest",calisthenics
+Cooldown,other,other
+Warmup,full body,mobility
+Stretching,full body,mobility
+Recovery,other,other
+Water Break,other,other
