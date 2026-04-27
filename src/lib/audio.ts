@@ -4,10 +4,11 @@ let audioCtx: AudioContext | null = null;
 function ctx(): AudioContext {
   if (!audioCtx) {
     const C = (window as any).AudioContext || (window as any).webkitAudioContext;
-    audioCtx = new C();
+    audioCtx = new C() as AudioContext;
   }
-  if (audioCtx.state === "suspended") audioCtx.resume();
-  return audioCtx;
+  const c = audioCtx as AudioContext;
+  if (c.state === "suspended") c.resume();
+  return c;
 }
 
 export function unlockAudio() {
