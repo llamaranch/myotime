@@ -261,7 +261,8 @@ function AddActivity() {
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
