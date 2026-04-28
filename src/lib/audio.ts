@@ -65,17 +65,20 @@ function beep(freq: number, durationMs: number, volume: number) {
 
 export function playTransitionBeeps(): Promise<void> {
   const prefs = storage.getPrefs();
-  if (prefs.beep_muted || prefs.beep_volume === 0) return Promise.resolve();
+  if (prefs.beep_muted || prefs.beep_volume === 0) return new Promise(r => setTimeout(r, 600));
   const v = (prefs.beep_volume / 100) * 0.6;
   return new Promise(resolve => {
+    let resolved = false;
+    const done = () => { if (!resolved) { resolved = true; resolve(); } };
+    // Hard safety: always resolve so the workout never freezes
+    const safety = setTimeout(done, 1500);
     const run = () => {
       try {
         beep(880, 200, v);
         setTimeout(() => { try { beep(880, 200, v); } catch {} }, 300);
       } catch {}
-      setTimeout(resolve, 600);
+      setTimeout(() => { clearTimeout(safety); done(); }, 600);
     };
-    // Make sure context is running before scheduling
     ensureAudio().then(run, run);
   });
 }
