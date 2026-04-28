@@ -203,7 +203,7 @@ function AddActivity() {
 
         {pendingActivity && (
           <TimePicker
-            initialSeconds={30}
+            initialSeconds={45}
             onCancel={cancelPending}
             onSave={confirmDuration}
           />
