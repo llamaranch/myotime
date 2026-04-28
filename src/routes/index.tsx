@@ -28,8 +28,17 @@ function HomePage() {
     <div className="honeycomb-bg min-h-screen">
       <div className="mx-auto max-w-xl px-4 pb-24 pt-6">
         <header className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Myo<span className="text-accent">Time</span>
+          <h1
+            style={{
+              fontFamily: '"Manrope", system-ui, sans-serif',
+              fontSize: "32px",
+              fontWeight: 800,
+              letterSpacing: "-0.025em",
+              lineHeight: 1,
+            }}
+          >
+            <span style={{ fontStyle: "italic", color: "#FFFFFF", marginRight: "2px" }}>Myo</span>
+            <span style={{ color: "#2EC4B6" }}>Time</span>
           </h1>
           <Link to="/settings" aria-label="Settings" className="rounded-full border border-border p-2 hover:bg-secondary">
             <SettingsIcon className="h-5 w-5" />
