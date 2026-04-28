@@ -2,12 +2,12 @@ import { storage } from "./storage";
 
 let audioCtx: AudioContext | null = null;
 function ctx(): AudioContext {
-  if (!audioCtx) {
+  if (!audioCtx || audioCtx.state === "closed") {
     const C = (window as any).AudioContext || (window as any).webkitAudioContext;
     audioCtx = new C() as AudioContext;
   }
   const c = audioCtx as AudioContext;
-  if (c.state === "suspended") c.resume();
+  if (c.state === "suspended") { try { c.resume(); } catch {} }
   return c;
 }
 
@@ -15,7 +15,12 @@ export async function ensureAudio(): Promise<void> {
   try {
     const c = ctx();
     if (c.state === "suspended") {
-      await c.resume();
+      // Race against a timeout — some browsers never resolve resume() if the
+      // page lost focus or the gesture window expired.
+      await Promise.race([
+        c.resume(),
+        new Promise(r => setTimeout(r, 400)),
+      ]);
     }
   } catch {}
 }
@@ -65,17 +70,20 @@ function beep(freq: number, durationMs: number, volume: number) {
 
 export function playTransitionBeeps(): Promise<void> {
   const prefs = storage.getPrefs();
-  if (prefs.beep_muted || prefs.beep_volume === 0) return Promise.resolve();
+  if (prefs.beep_muted || prefs.beep_volume === 0) return new Promise(r => setTimeout(r, 600));
   const v = (prefs.beep_volume / 100) * 0.6;
   return new Promise(resolve => {
+    let resolved = false;
+    const done = () => { if (!resolved) { resolved = true; resolve(); } };
+    // Hard safety: always resolve so the workout never freezes
+    const safety = setTimeout(done, 1500);
     const run = () => {
       try {
         beep(880, 200, v);
         setTimeout(() => { try { beep(880, 200, v); } catch {} }, 300);
       } catch {}
-      setTimeout(resolve, 600);
+      setTimeout(() => { clearTimeout(safety); done(); }, 600);
     };
-    // Make sure context is running before scheduling
     ensureAudio().then(run, run);
   });
 }
