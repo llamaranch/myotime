@@ -25,6 +25,8 @@ function RunWorkout() {
   const remainingRef = useRef(0);
   const phaseRef = useRef<Phase>("idle");
   const idxRef = useRef(0);
+  const workoutRef = useRef<Workout | null>(null);
+  const endingRef = useRef(false);
   const tickRef = useRef<number | null>(null);
   const lastTickRef = useRef<number>(0);
 
@@ -37,6 +39,7 @@ function RunWorkout() {
     const w = storage.getWorkout(id);
     if (!w || w.activities.length === 0) { navigate({ to: "/" }); return; }
     setWorkout(w);
+    workoutRef.current = w;
     unlockAudio();
     requestWakeLock();
     const cleanup = setupWakeLockReacquire(() => phaseRef.current !== "complete" && phaseRef.current !== "idle");
@@ -71,6 +74,8 @@ function RunWorkout() {
       if (phaseRef.current === "active") {
         const next = remainingRef.current - dt;
         if (next <= 0) {
+          if (endingRef.current) return;
+          endingRef.current = true;
           remainingRef.current = 0;
           setRemaining(0);
           stopTick();
@@ -110,11 +115,13 @@ function RunWorkout() {
   function wait(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 
   async function onActivityEnd() {
-    if (!workout) return;
+    const activeWorkout = workoutRef.current;
+    if (!activeWorkout) { endingRef.current = false; return; }
     const nextIdx = idxRef.current + 1;
-    if (nextIdx >= workout.activities.length) {
+    if (nextIdx >= activeWorkout.activities.length) {
       setPhase("complete");
       phaseRef.current = "complete";
+      endingRef.current = false;
       cancelSpeech();
       releaseWakeLock();
       playChime();
@@ -127,16 +134,16 @@ function RunWorkout() {
     playTransitionBeeps().catch(() => {});
     await wait(600);
     if (phaseRef.current !== "transition") return;
-    const next = workout.activities[nextIdx];
-    // Race speech against a hard timeout so we always advance
-    await Promise.race([speak(next.name), wait(2000)]);
-    if (phaseRef.current !== "transition") return;
+    const next = activeWorkout.activities[nextIdx];
     setIdx(nextIdx); idxRef.current = nextIdx;
     setRemaining(next.duration_seconds);
     remainingRef.current = next.duration_seconds;
+    endingRef.current = false;
     setPhase("active");
     phaseRef.current = "active";
     startTick();
+    // Race speech against a hard timeout so we always advance
+    Promise.race([speak(next.name), wait(2000)]).catch(() => {});
   }
 
   const togglePause = () => {
