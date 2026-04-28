@@ -4,6 +4,24 @@ import { ArrowLeft, GripVertical, Plus, Trash2, Replace as ReplaceIcon, Clock } 
 import { storage, uid } from "@/lib/storage";
 import type { Workout, WorkoutActivity } from "@/lib/types";
 import { formatTime, totalDuration } from "@/lib/utils-time";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  arrayMove,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export const Route = createFileRoute("/workout/$id/edit")({
   head: () => ({ meta: [{ title: "Edit Workout — MyoTime" }] }),
