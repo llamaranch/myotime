@@ -4,6 +4,7 @@ import { ArrowLeft, Pencil, Play } from "lucide-react";
 import { storage } from "@/lib/storage";
 import type { Workout } from "@/lib/types";
 import { formatTime, totalDuration } from "@/lib/utils-time";
+import { unlockAudio } from "@/lib/audio";
 
 export const Route = createFileRoute("/workout/$id/")({
   head: () => ({ meta: [{ title: "Workout — MyoTime" }] }),
