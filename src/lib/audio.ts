@@ -68,11 +68,15 @@ export function playTransitionBeeps(): Promise<void> {
   if (prefs.beep_muted || prefs.beep_volume === 0) return Promise.resolve();
   const v = (prefs.beep_volume / 100) * 0.6;
   return new Promise(resolve => {
-    try {
-      beep(880, 200, v);
-      setTimeout(() => beep(880, 200, v), 300);
+    const run = () => {
+      try {
+        beep(880, 200, v);
+        setTimeout(() => { try { beep(880, 200, v); } catch {} }, 300);
+      } catch {}
       setTimeout(resolve, 600);
-    } catch { resolve(); }
+    };
+    // Make sure context is running before scheduling
+    ensureAudio().then(run, run);
   });
 }
 
@@ -80,11 +84,13 @@ export function playChime(): void {
   const prefs = storage.getPrefs();
   if (prefs.beep_muted || prefs.beep_volume === 0) return;
   const v = (prefs.beep_volume / 100) * 0.5;
-  try {
-    beep(523.25, 250, v); // C5
-    setTimeout(() => beep(659.25, 250, v), 180); // E5
-    setTimeout(() => beep(783.99, 500, v), 360); // G5
-  } catch {}
+  ensureAudio().then(() => {
+    try {
+      beep(523.25, 250, v); // C5
+      setTimeout(() => { try { beep(659.25, 250, v); } catch {} }, 180);
+      setTimeout(() => { try { beep(783.99, 500, v); } catch {} }, 360);
+    } catch {}
+  });
 }
 
 let voicesCache: SpeechSynthesisVoice[] = [];
