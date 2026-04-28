@@ -11,9 +11,19 @@ function ctx(): AudioContext {
   return c;
 }
 
+export async function ensureAudio(): Promise<void> {
+  try {
+    const c = ctx();
+    if (c.state === "suspended") {
+      await c.resume();
+    }
+  } catch {}
+}
+
 export function unlockAudio() {
   try {
     const c = ctx();
+    if (c.state === "suspended") c.resume();
     // Play a silent buffer synchronously to unlock on iOS/Safari
     const buffer = c.createBuffer(1, 1, 22050);
     const source = c.createBufferSource();
@@ -21,12 +31,18 @@ export function unlockAudio() {
     source.connect(c.destination);
     source.start(0);
   } catch {}
-  // Prime speech synthesis with a silent utterance inside the gesture
+  // Prime speech synthesis: cancel any pending, then speak a silent utterance
+  // synchronously inside the gesture. We do NOT leave it queued — cancel right
+  // after to avoid it interfering with the first real utterance.
   try {
     if (typeof speechSynthesis !== "undefined") {
-      const u = new SpeechSynthesisUtterance("");
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(" ");
       u.volume = 0;
+      u.rate = 10;
       speechSynthesis.speak(u);
+      // Force-load voices
+      speechSynthesis.getVoices();
     }
   } catch {}
 }
