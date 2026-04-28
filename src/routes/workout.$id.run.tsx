@@ -192,7 +192,7 @@ function RunWorkout() {
             {phase === "starting" ? "Get ready" : phase === "transition" ? "Up next…" : "Now"}
           </p>
           <h2 className="mt-2 text-center text-3xl font-bold sm:text-4xl">{current.name}</h2>
-          <div className="timer-digits mt-6 text-[20vw] leading-none text-accent landscape:text-[21vw] sm:text-[140px]">
+          <div className="timer-digits mt-6 text-[40vw] leading-none text-accent landscape:text-[21vw] sm:text-[280px]">
             {formatTime(remaining)}
           </div>
           <div className="mt-8 flex gap-3">
