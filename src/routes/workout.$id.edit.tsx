@@ -176,41 +176,34 @@ function EditWorkout() {
           Total: <span className="timer-digits text-foreground">{formatTime(total)}</span>
         </p>
 
-        <ul className="mt-5 space-y-2">
-          {activities.map((a, i) => (
-            <li
-              key={a.id}
-              className="myo-card overflow-hidden"
-              draggable
-              onDragStart={() => setDragIdx(i)}
-              onDragOver={e => e.preventDefault()}
-              onDrop={() => { if (dragIdx !== null) onMove(dragIdx, i); setDragIdx(null); }}
-            >
-              <button onClick={() => setOpenId(openId === a.id ? null : a.id)} className="flex w-full items-center justify-between px-3 py-3 text-left">
-                <span className="flex items-center gap-3">
-                  <GripVertical className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{a.name}</span>
-                </span>
-                <span className="timer-digits text-muted-foreground">{formatTime(a.duration_seconds)}</span>
-              </button>
-              {openId === a.id && (
-                <div className="flex flex-wrap gap-2 border-t border-border bg-secondary px-3 py-3">
-                  <button className="myo-btn-ghost text-sm" onClick={() => setEditTimeIdx(i)}>
-                    <Clock className="h-4 w-4" /> Edit Time
-                  </button>
-                  <button className="myo-btn-ghost text-sm" onClick={() => goAddActivity(i)}>
-                    <ReplaceIcon className="h-4 w-4" /> Replace
-                  </button>
-                  <button className="myo-btn-ghost text-sm" onClick={() => onMove(i, i - 1)} disabled={i === 0}>↑</button>
-                  <button className="myo-btn-ghost text-sm" onClick={() => onMove(i, i + 1)} disabled={i === activities.length - 1}>↓</button>
-                  <button className="myo-btn-ghost text-sm text-destructive" onClick={() => onDelete(i)}>
-                    <Trash2 className="h-4 w-4" /> Delete
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={activities.map((a) => a.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <ul className="mt-5 space-y-2">
+              {activities.map((a, i) => (
+                <SortableActivityItem
+                  key={a.id}
+                  activity={a}
+                  index={i}
+                  isLast={i === activities.length - 1}
+                  isOpen={openId === a.id}
+                  onToggleOpen={() => setOpenId(openId === a.id ? null : a.id)}
+                  onEditTime={() => setEditTimeIdx(i)}
+                  onReplace={() => goAddActivity(i)}
+                  onMoveUp={() => onMove(i, i - 1)}
+                  onMoveDown={() => onMove(i, i + 1)}
+                  onDelete={() => onDelete(i)}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
 
         <button onClick={() => goAddActivity(null)} className="myo-btn mt-4 w-full">
           <Plus className="h-4 w-4" /> Add Activity
