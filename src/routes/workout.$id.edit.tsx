@@ -231,6 +231,104 @@ function EditWorkout() {
   );
 }
 
+interface SortableActivityItemProps {
+  activity: WorkoutActivity;
+  index: number;
+  isLast: boolean;
+  isOpen: boolean;
+  onToggleOpen: () => void;
+  onEditTime: () => void;
+  onReplace: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onDelete: () => void;
+}
+
+function SortableActivityItem({
+  activity: a,
+  index,
+  isLast,
+  isOpen,
+  onToggleOpen,
+  onEditTime,
+  onReplace,
+  onMoveUp,
+  onMoveDown,
+  onDelete,
+}: SortableActivityItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: a.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : ("auto" as const),
+  };
+
+  return (
+    <li ref={setNodeRef} style={style} className="myo-card overflow-hidden">
+      <div className="flex w-full items-center justify-between px-3 py-3">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder"
+          className="touch-none cursor-grab active:cursor-grabbing px-1 py-1 -ml-1 text-muted-foreground"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onToggleOpen}
+          className="flex flex-1 items-center justify-between text-left"
+        >
+          <span className="font-medium">{a.name}</span>
+          <span className="timer-digits text-muted-foreground">
+            {formatTime(a.duration_seconds)}
+          </span>
+        </button>
+      </div>
+      {isOpen && (
+        <div className="flex flex-wrap gap-2 border-t border-border bg-secondary px-3 py-3">
+          <button className="myo-btn-ghost text-sm" onClick={onEditTime}>
+            <Clock className="h-4 w-4" /> Edit Time
+          </button>
+          <button className="myo-btn-ghost text-sm" onClick={onReplace}>
+            <ReplaceIcon className="h-4 w-4" /> Replace
+          </button>
+          <button
+            className="myo-btn-ghost text-sm"
+            onClick={onMoveUp}
+            disabled={index === 0}
+          >
+            ↑
+          </button>
+          <button
+            className="myo-btn-ghost text-sm"
+            onClick={onMoveDown}
+            disabled={isLast}
+          >
+            ↓
+          </button>
+          <button
+            className="myo-btn-ghost text-sm text-destructive"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
+        </div>
+      )}
+    </li>
+  );
+}
+
 export function TimePicker({ initialSeconds, onCancel, onSave }: { initialSeconds: number; onCancel: () => void; onSave: (s: number) => void; }) {
   const [m, setM] = useState(Math.floor(initialSeconds / 60));
   const [s, setS] = useState(initialSeconds % 60);
