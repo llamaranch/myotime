@@ -162,8 +162,8 @@ export function playTransitionBeeps(): Promise<void> {
     const safety = setTimeout(done, 1500);
     const run = () => {
       try {
-        beep(880, 200, v);
-        setTimeout(() => { try { beep(880, 200, v); } catch {} }, 300);
+        playTone(880, 200, v);
+        setTimeout(() => { try { playTone(880, 200, v); } catch {} }, 300);
       } catch {}
       setTimeout(() => { clearTimeout(safety); done(); }, 600);
     };
@@ -177,9 +177,9 @@ export function playChime(): void {
   const v = (prefs.beep_volume / 100) * 0.5;
   ensureAudio().then(() => {
     try {
-      beep(523.25, 250, v); // C5
-      setTimeout(() => { try { beep(659.25, 250, v); } catch {} }, 180);
-      setTimeout(() => { try { beep(783.99, 500, v); } catch {} }, 360);
+      playTone(523.25, 250, v); // C5
+      setTimeout(() => { try { playTone(659.25, 250, v); } catch {} }, 180);
+      setTimeout(() => { try { playTone(783.99, 500, v); } catch {} }, 360);
     } catch {}
   });
 }
