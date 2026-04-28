@@ -31,7 +31,7 @@ function HomePage() {
           <h1
             style={{
               fontFamily: '"Manrope", system-ui, sans-serif',
-              fontSize: "32px",
+              fontSize: "48px",
               fontWeight: 800,
               letterSpacing: "-0.025em",
               lineHeight: 1,
