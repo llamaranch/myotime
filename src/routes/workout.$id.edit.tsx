@@ -4,6 +4,24 @@ import { ArrowLeft, GripVertical, Plus, Trash2, Replace as ReplaceIcon, Clock } 
 import { storage, uid } from "@/lib/storage";
 import type { Workout, WorkoutActivity } from "@/lib/types";
 import { formatTime, totalDuration } from "@/lib/utils-time";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  arrayMove,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export const Route = createFileRoute("/workout/$id/edit")({
   head: () => ({ meta: [{ title: "Edit Workout — MyoTime" }] }),
@@ -44,7 +62,7 @@ function EditWorkout() {
   const [original, setOriginal] = useState<{ name: string; activities: WorkoutActivity[] }>({ name: "", activities: [] });
   const [openId, setOpenId] = useState<string | null>(null);
   const [editTimeIdx, setEditTimeIdx] = useState<number | null>(null);
-  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  
 
   // Load: prefer pending state (returning from Add Activity), else workout, else empty
   useEffect(() => {
@@ -119,6 +137,28 @@ function EditWorkout() {
     });
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setActivities((items) => {
+      const oldIndex = items.findIndex((i) => i.id === active.id);
+      const newIndex = items.findIndex((i) => i.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return items;
+      return arrayMove(items, oldIndex, newIndex);
+    });
+  };
   return (
     <div className="honeycomb-bg min-h-screen">
       <div className="mx-auto max-w-xl px-4 pb-32 pt-6">
@@ -136,41 +176,34 @@ function EditWorkout() {
           Total: <span className="timer-digits text-foreground">{formatTime(total)}</span>
         </p>
 
-        <ul className="mt-5 space-y-2">
-          {activities.map((a, i) => (
-            <li
-              key={a.id}
-              className="myo-card overflow-hidden"
-              draggable
-              onDragStart={() => setDragIdx(i)}
-              onDragOver={e => e.preventDefault()}
-              onDrop={() => { if (dragIdx !== null) onMove(dragIdx, i); setDragIdx(null); }}
-            >
-              <button onClick={() => setOpenId(openId === a.id ? null : a.id)} className="flex w-full items-center justify-between px-3 py-3 text-left">
-                <span className="flex items-center gap-3">
-                  <GripVertical className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{a.name}</span>
-                </span>
-                <span className="timer-digits text-muted-foreground">{formatTime(a.duration_seconds)}</span>
-              </button>
-              {openId === a.id && (
-                <div className="flex flex-wrap gap-2 border-t border-border bg-secondary px-3 py-3">
-                  <button className="myo-btn-ghost text-sm" onClick={() => setEditTimeIdx(i)}>
-                    <Clock className="h-4 w-4" /> Edit Time
-                  </button>
-                  <button className="myo-btn-ghost text-sm" onClick={() => goAddActivity(i)}>
-                    <ReplaceIcon className="h-4 w-4" /> Replace
-                  </button>
-                  <button className="myo-btn-ghost text-sm" onClick={() => onMove(i, i - 1)} disabled={i === 0}>↑</button>
-                  <button className="myo-btn-ghost text-sm" onClick={() => onMove(i, i + 1)} disabled={i === activities.length - 1}>↓</button>
-                  <button className="myo-btn-ghost text-sm text-destructive" onClick={() => onDelete(i)}>
-                    <Trash2 className="h-4 w-4" /> Delete
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={activities.map((a) => a.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <ul className="mt-5 space-y-2">
+              {activities.map((a, i) => (
+                <SortableActivityItem
+                  key={a.id}
+                  activity={a}
+                  index={i}
+                  isLast={i === activities.length - 1}
+                  isOpen={openId === a.id}
+                  onToggleOpen={() => setOpenId(openId === a.id ? null : a.id)}
+                  onEditTime={() => setEditTimeIdx(i)}
+                  onReplace={() => goAddActivity(i)}
+                  onMoveUp={() => onMove(i, i - 1)}
+                  onMoveDown={() => onMove(i, i + 1)}
+                  onDelete={() => onDelete(i)}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
 
         <button onClick={() => goAddActivity(null)} className="myo-btn mt-4 w-full">
           <Plus className="h-4 w-4" /> Add Activity
@@ -195,6 +228,104 @@ function EditWorkout() {
         )}
       </div>
     </div>
+  );
+}
+
+interface SortableActivityItemProps {
+  activity: WorkoutActivity;
+  index: number;
+  isLast: boolean;
+  isOpen: boolean;
+  onToggleOpen: () => void;
+  onEditTime: () => void;
+  onReplace: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onDelete: () => void;
+}
+
+function SortableActivityItem({
+  activity: a,
+  index,
+  isLast,
+  isOpen,
+  onToggleOpen,
+  onEditTime,
+  onReplace,
+  onMoveUp,
+  onMoveDown,
+  onDelete,
+}: SortableActivityItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: a.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : ("auto" as const),
+  };
+
+  return (
+    <li ref={setNodeRef} style={style} className="myo-card overflow-hidden">
+      <div className="flex w-full items-center justify-between px-3 py-3">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder"
+          className="touch-none cursor-grab active:cursor-grabbing px-1 py-1 -ml-1 text-muted-foreground"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onToggleOpen}
+          className="flex flex-1 items-center justify-between text-left"
+        >
+          <span className="font-medium">{a.name}</span>
+          <span className="timer-digits text-muted-foreground">
+            {formatTime(a.duration_seconds)}
+          </span>
+        </button>
+      </div>
+      {isOpen && (
+        <div className="flex flex-wrap gap-2 border-t border-border bg-secondary px-3 py-3">
+          <button className="myo-btn-ghost text-sm" onClick={onEditTime}>
+            <Clock className="h-4 w-4" /> Edit Time
+          </button>
+          <button className="myo-btn-ghost text-sm" onClick={onReplace}>
+            <ReplaceIcon className="h-4 w-4" /> Replace
+          </button>
+          <button
+            className="myo-btn-ghost text-sm"
+            onClick={onMoveUp}
+            disabled={index === 0}
+          >
+            ↑
+          </button>
+          <button
+            className="myo-btn-ghost text-sm"
+            onClick={onMoveDown}
+            disabled={isLast}
+          >
+            ↓
+          </button>
+          <button
+            className="myo-btn-ghost text-sm text-destructive"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
+        </div>
+      )}
+    </li>
   );
 }
 
