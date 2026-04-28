@@ -123,10 +123,13 @@ function RunWorkout() {
     }
     setPhase("transition");
     phaseRef.current = "transition";
-    await playTransitionBeeps();
+    // Fire beeps but don't let a stuck audio engine freeze the workout
+    playTransitionBeeps().catch(() => {});
+    await wait(600);
     if (phaseRef.current !== "transition") return;
     const next = workout.activities[nextIdx];
-    await speak(next.name);
+    // Race speech against a hard timeout so we always advance
+    await Promise.race([speak(next.name), wait(2000)]);
     if (phaseRef.current !== "transition") return;
     setIdx(nextIdx); idxRef.current = nextIdx;
     setRemaining(next.duration_seconds);
