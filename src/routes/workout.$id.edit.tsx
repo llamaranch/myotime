@@ -42,7 +42,7 @@ function EditWorkout() {
   const [name, setName] = useState("");
   const [activities, setActivities] = useState<WorkoutActivity[]>([]);
   const [original, setOriginal] = useState<{ name: string; activities: WorkoutActivity[] }>({ name: "", activities: [] });
-  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [editTimeIdx, setEditTimeIdx] = useState<number | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
@@ -57,16 +57,18 @@ function EditWorkout() {
       clearPending();
       return;
     }
-    if (isNew) {
+    // No pending state: load existing workout if it exists, otherwise start empty.
+    // Do NOT redirect to home — this caused new-workout creation to silently
+    // bounce back when the URL changed during navigation.
+    const existing = storage.getWorkout(workoutId);
+    if (existing) {
+      setName(existing.name);
+      setActivities(existing.activities);
+      setOriginal({ name: existing.name, activities: existing.activities });
+    } else {
       setName("");
       setActivities([]);
       setOriginal({ name: "", activities: [] });
-    } else {
-      const w = storage.getWorkout(workoutId);
-      if (!w) { navigate({ to: "/" }); return; }
-      setName(w.name);
-      setActivities(w.activities);
-      setOriginal({ name: w.name, activities: w.activities });
     }
   }, [workoutId, isNew, navigate]);
 
@@ -102,8 +104,9 @@ function EditWorkout() {
   };
 
   const onDelete = (i: number) => {
+    const removedId = activities[i]?.id;
     setActivities(arr => arr.filter((_, idx) => idx !== i));
-    setOpenIdx(null);
+    if (removedId && openId === removedId) setOpenId(null);
   };
 
   const onMove = (from: number, to: number) => {
@@ -143,14 +146,14 @@ function EditWorkout() {
               onDragOver={e => e.preventDefault()}
               onDrop={() => { if (dragIdx !== null) onMove(dragIdx, i); setDragIdx(null); }}
             >
-              <button onClick={() => setOpenIdx(openIdx === i ? null : i)} className="flex w-full items-center justify-between px-3 py-3 text-left">
+              <button onClick={() => setOpenId(openId === a.id ? null : a.id)} className="flex w-full items-center justify-between px-3 py-3 text-left">
                 <span className="flex items-center gap-3">
                   <GripVertical className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">{a.name}</span>
                 </span>
                 <span className="timer-digits text-muted-foreground">{formatTime(a.duration_seconds)}</span>
               </button>
-              {openIdx === i && (
+              {openId === a.id && (
                 <div className="flex flex-wrap gap-2 border-t border-border bg-secondary px-3 py-3">
                   <button className="myo-btn-ghost text-sm" onClick={() => setEditTimeIdx(i)}>
                     <Clock className="h-4 w-4" /> Edit Time
