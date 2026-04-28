@@ -186,13 +186,13 @@ function RunWorkout() {
       </div>
 
       {/* Main: portrait stacks, landscape splits */}
-      <div className="flex flex-1 flex-col landscape:flex-row landscape:items-stretch">
-        <div className="flex flex-1 flex-col items-center justify-center px-6 landscape:flex-[2]">
+      <div className="flex flex-1 flex-col landscape:-mt-6 landscape:flex-row landscape:items-stretch">
+        <div className="flex flex-1 flex-col items-center justify-center px-6 landscape:flex-[3]">
           <p className="text-sm uppercase tracking-widest text-muted-foreground">
             {phase === "starting" ? "Get ready" : phase === "transition" ? "Up next…" : "Now"}
           </p>
           <h2 className="mt-2 text-center text-3xl font-bold sm:text-4xl">{current.name}</h2>
-          <div className="timer-digits mt-6 text-[20vw] leading-none text-accent landscape:text-[14vw] sm:text-[140px]">
+          <div className="timer-digits mt-6 text-[20vw] leading-none text-accent landscape:text-[21vw] sm:text-[140px]">
             {formatTime(remaining)}
           </div>
           <div className="mt-8 flex gap-3">
