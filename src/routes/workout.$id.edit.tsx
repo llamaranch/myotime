@@ -62,7 +62,7 @@ function EditWorkout() {
   const [original, setOriginal] = useState<{ name: string; activities: WorkoutActivity[] }>({ name: "", activities: [] });
   const [openId, setOpenId] = useState<string | null>(null);
   const [editTimeIdx, setEditTimeIdx] = useState<number | null>(null);
-  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  
 
   // Load: prefer pending state (returning from Add Activity), else workout, else empty
   useEffect(() => {
