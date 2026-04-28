@@ -2,12 +2,12 @@ import { storage } from "./storage";
 
 let audioCtx: AudioContext | null = null;
 function ctx(): AudioContext {
-  if (!audioCtx) {
+  if (!audioCtx || audioCtx.state === "closed") {
     const C = (window as any).AudioContext || (window as any).webkitAudioContext;
     audioCtx = new C() as AudioContext;
   }
   const c = audioCtx as AudioContext;
-  if (c.state === "suspended") c.resume();
+  if (c.state === "suspended") { try { c.resume(); } catch {} }
   return c;
 }
 
@@ -15,7 +15,12 @@ export async function ensureAudio(): Promise<void> {
   try {
     const c = ctx();
     if (c.state === "suspended") {
-      await c.resume();
+      // Race against a timeout — some browsers never resolve resume() if the
+      // page lost focus or the gesture window expired.
+      await Promise.race([
+        c.resume(),
+        new Promise(r => setTimeout(r, 400)),
+      ]);
     }
   } catch {}
 }
