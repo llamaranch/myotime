@@ -1,6 +1,8 @@
 import { storage } from "./storage";
 
 let audioCtx: AudioContext | null = null;
+const htmlTones = new Map<string, HTMLAudioElement>();
+
 function ctx(): AudioContext {
   if (!audioCtx || audioCtx.state === "closed") {
     const C = (window as any).AudioContext || (window as any).webkitAudioContext;
@@ -25,6 +27,80 @@ export async function ensureAudio(): Promise<void> {
   } catch {}
 }
 
+function wavDataUrl(freq: number, durationMs: number): string {
+  const sampleRate = 44100;
+  const samples = Math.ceil(sampleRate * durationMs / 1000);
+  const bytes = new Uint8Array(44 + samples * 2);
+  const view = new DataView(bytes.buffer);
+  const write = (offset: number, text: string) => {
+    for (let i = 0; i < text.length; i++) bytes[offset + i] = text.charCodeAt(i);
+  };
+  write(0, "RIFF");
+  view.setUint32(4, 36 + samples * 2, true);
+  write(8, "WAVEfmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  write(36, "data");
+  view.setUint32(40, samples * 2, true);
+  for (let i = 0; i < samples; i++) {
+    const fade = Math.min(1, i / 220, (samples - i) / 220);
+    const sample = Math.sin(2 * Math.PI * freq * i / sampleRate) * 0.85 * fade;
+    view.setInt16(44 + i * 2, Math.max(-1, Math.min(1, sample)) * 32767, true);
+  }
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 8192) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+  }
+  return `data:audio/wav;base64,${btoa(binary)}`;
+}
+
+function toneElement(freq: number, durationMs: number): HTMLAudioElement | null {
+  if (typeof Audio === "undefined") return null;
+  const key = `${freq}:${durationMs}`;
+  let el = htmlTones.get(key);
+  if (!el) {
+    el = new Audio(wavDataUrl(freq, durationMs));
+    el.preload = "auto";
+    htmlTones.set(key, el);
+  }
+  return el;
+}
+
+function primeHtmlTones() {
+  [[880, 200], [523.25, 250], [659.25, 250], [783.99, 500]].forEach(([freq, duration]) => {
+    try {
+      const el = toneElement(freq, duration);
+      if (!el) return;
+      el.volume = 0.001;
+      el.currentTime = 0;
+      const played = el.play();
+      played?.then(() => {
+        el.pause();
+        el.currentTime = 0;
+      }).catch(() => {});
+    } catch {}
+  });
+}
+
+function playTone(freq: number, durationMs: number, volume: number) {
+  try {
+    const el = toneElement(freq, durationMs);
+    if (el) {
+      el.pause();
+      el.currentTime = 0;
+      el.volume = Math.max(0, Math.min(1, volume));
+      el.play()?.catch(() => { try { beep(freq, durationMs, volume); } catch {} });
+      return;
+    }
+  } catch {}
+  try { beep(freq, durationMs, volume); } catch {}
+}
+
 export function unlockAudio() {
   try {
     const c = ctx();
@@ -42,6 +118,7 @@ export function unlockAudio() {
     osc.start();
     osc.stop(c.currentTime + 0.04);
   } catch {}
+  primeHtmlTones();
   // Prime speech synthesis: cancel any pending, then speak a silent utterance
   // synchronously inside the gesture. We do NOT leave it queued — cancel right
   // after to avoid it interfering with the first real utterance.
@@ -85,8 +162,8 @@ export function playTransitionBeeps(): Promise<void> {
     const safety = setTimeout(done, 1500);
     const run = () => {
       try {
-        beep(880, 200, v);
-        setTimeout(() => { try { beep(880, 200, v); } catch {} }, 300);
+        playTone(880, 200, v);
+        setTimeout(() => { try { playTone(880, 200, v); } catch {} }, 300);
       } catch {}
       setTimeout(() => { clearTimeout(safety); done(); }, 600);
     };
@@ -100,9 +177,9 @@ export function playChime(): void {
   const v = (prefs.beep_volume / 100) * 0.5;
   ensureAudio().then(() => {
     try {
-      beep(523.25, 250, v); // C5
-      setTimeout(() => { try { beep(659.25, 250, v); } catch {} }, 180);
-      setTimeout(() => { try { beep(783.99, 500, v); } catch {} }, 360);
+      playTone(523.25, 250, v); // C5
+      setTimeout(() => { try { playTone(659.25, 250, v); } catch {} }, 180);
+      setTimeout(() => { try { playTone(783.99, 500, v); } catch {} }, 360);
     } catch {}
   });
 }
