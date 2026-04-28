@@ -7,14 +7,14 @@ function ctx(): AudioContext {
     audioCtx = new C() as AudioContext;
   }
   const c = audioCtx as AudioContext;
-  if (c.state === "suspended") { try { c.resume(); } catch {} }
+  if ((c.state as string) !== "running") { try { c.resume(); } catch {} }
   return c;
 }
 
 export async function ensureAudio(): Promise<void> {
   try {
     const c = ctx();
-    if (c.state === "suspended") {
+    if ((c.state as string) !== "running" && c.state !== "closed") {
       // Race against a timeout — some browsers never resolve resume() if the
       // page lost focus or the gesture window expired.
       await Promise.race([
@@ -28,13 +28,19 @@ export async function ensureAudio(): Promise<void> {
 export function unlockAudio() {
   try {
     const c = ctx();
-    if (c.state === "suspended") c.resume();
+    if ((c.state as string) !== "running") c.resume();
     // Play a silent buffer synchronously to unlock on iOS/Safari
     const buffer = c.createBuffer(1, 1, 22050);
     const source = c.createBufferSource();
     source.buffer = buffer;
     source.connect(c.destination);
     source.start(0);
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    gain.gain.value = 0.0001;
+    osc.connect(gain).connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + 0.04);
   } catch {}
   // Prime speech synthesis: cancel any pending, then speak a silent utterance
   // synchronously inside the gesture. We do NOT leave it queued — cancel right
