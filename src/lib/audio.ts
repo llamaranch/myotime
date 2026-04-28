@@ -110,9 +110,13 @@ export function speak(text: string): Promise<void> {
   return new Promise(resolve => {
     try {
       speechSynthesis.cancel();
+      // Chrome quirk: after cancel(), calling speak() in the same tick can be
+      // dropped. resume() + microtask defer keeps the utterance reliable.
+      try { speechSynthesis.resume(); } catch {}
       const u = new SpeechSynthesisUtterance(text);
       u.volume = prefs.voice_volume / 100;
       u.rate = 1;
+      u.lang = "en-US";
       const voices = getVoices();
       if (prefs.preferred_voice) {
         const v = voices.find(v => v.name === prefs.preferred_voice);
@@ -122,9 +126,12 @@ export function speak(text: string): Promise<void> {
       const finish = () => { if (!done) { done = true; resolve(); } };
       u.onend = finish;
       u.onerror = finish;
-      speechSynthesis.speak(u);
-      // safety timeout
-      setTimeout(finish, Math.max(2500, text.length * 120));
+      // Defer one tick so cancel() fully clears the queue first
+      setTimeout(() => {
+        try { speechSynthesis.speak(u); } catch { finish(); return; }
+        // safety timeout
+        setTimeout(finish, Math.max(2500, text.length * 120));
+      }, 0);
     } catch { resolve(); }
   });
 }
