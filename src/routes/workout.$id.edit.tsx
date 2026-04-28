@@ -207,6 +207,8 @@ export function TimePicker({ initialSeconds, onCancel, onSave }: { initialSecond
           <label className="flex flex-col items-center">
             <span className="mb-1 text-xs text-muted-foreground">MIN</span>
             <input type="number" min={0} max={99} value={m}
+              onFocus={e => e.currentTarget.select()}
+              onClick={e => e.currentTarget.select()}
               onChange={e => setM(Math.max(0, Math.min(99, parseInt(e.target.value || "0"))))}
               className="w-20 rounded-lg bg-secondary px-3 py-3 text-center text-2xl font-bold outline-none focus:ring-2 focus:ring-accent" />
           </label>
@@ -214,6 +216,8 @@ export function TimePicker({ initialSeconds, onCancel, onSave }: { initialSecond
           <label className="flex flex-col items-center">
             <span className="mb-1 text-xs text-muted-foreground">SEC</span>
             <input type="number" min={0} max={59} value={s}
+              onFocus={e => e.currentTarget.select()}
+              onClick={e => e.currentTarget.select()}
               onChange={e => setS(Math.max(0, Math.min(59, parseInt(e.target.value || "0"))))}
               className="w-20 rounded-lg bg-secondary px-3 py-3 text-center text-2xl font-bold outline-none focus:ring-2 focus:ring-accent" />
           </label>
