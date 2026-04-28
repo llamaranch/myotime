@@ -4,6 +4,7 @@ import { ArrowLeft, Pencil, Play } from "lucide-react";
 import { storage } from "@/lib/storage";
 import type { Workout } from "@/lib/types";
 import { formatTime, totalDuration } from "@/lib/utils-time";
+import { unlockAudio } from "@/lib/audio";
 
 export const Route = createFileRoute("/workout/$id/")({
   head: () => ({ meta: [{ title: "Workout — MyoTime" }] }),
@@ -50,6 +51,9 @@ function WorkoutDetail() {
             <Link
               to="/workout/$id/run"
               params={{ id: workout.id }}
+              onMouseDown={unlockAudio}
+              onTouchStart={unlockAudio}
+              onClick={unlockAudio}
               className="myo-btn col-span-2 py-4 text-lg"
             >
               <Play className="h-5 w-5" /> Start Workout
