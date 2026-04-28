@@ -91,6 +91,9 @@ function RunWorkout() {
     setIdx(0); idxRef.current = 0;
     setRemaining(w.activities[0].duration_seconds);
     remainingRef.current = w.activities[0].duration_seconds;
+    // Small delay to let the audio/speech unlock settle before first utterance
+    await wait(300);
+    if (phaseRef.current !== "starting") return;
     await speak("three"); await wait(250);
     if (phaseRef.current !== "starting") return;
     await speak("two"); await wait(250);

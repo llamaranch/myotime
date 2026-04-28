@@ -11,9 +11,19 @@ function ctx(): AudioContext {
   return c;
 }
 
+export async function ensureAudio(): Promise<void> {
+  try {
+    const c = ctx();
+    if (c.state === "suspended") {
+      await c.resume();
+    }
+  } catch {}
+}
+
 export function unlockAudio() {
   try {
     const c = ctx();
+    if (c.state === "suspended") c.resume();
     // Play a silent buffer synchronously to unlock on iOS/Safari
     const buffer = c.createBuffer(1, 1, 22050);
     const source = c.createBufferSource();
@@ -21,12 +31,18 @@ export function unlockAudio() {
     source.connect(c.destination);
     source.start(0);
   } catch {}
-  // Prime speech synthesis with a silent utterance inside the gesture
+  // Prime speech synthesis: cancel any pending, then speak a silent utterance
+  // synchronously inside the gesture. We do NOT leave it queued — cancel right
+  // after to avoid it interfering with the first real utterance.
   try {
     if (typeof speechSynthesis !== "undefined") {
-      const u = new SpeechSynthesisUtterance("");
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(" ");
       u.volume = 0;
+      u.rate = 10;
       speechSynthesis.speak(u);
+      // Force-load voices
+      speechSynthesis.getVoices();
     }
   } catch {}
 }
@@ -52,11 +68,15 @@ export function playTransitionBeeps(): Promise<void> {
   if (prefs.beep_muted || prefs.beep_volume === 0) return Promise.resolve();
   const v = (prefs.beep_volume / 100) * 0.6;
   return new Promise(resolve => {
-    try {
-      beep(880, 200, v);
-      setTimeout(() => beep(880, 200, v), 300);
+    const run = () => {
+      try {
+        beep(880, 200, v);
+        setTimeout(() => { try { beep(880, 200, v); } catch {} }, 300);
+      } catch {}
       setTimeout(resolve, 600);
-    } catch { resolve(); }
+    };
+    // Make sure context is running before scheduling
+    ensureAudio().then(run, run);
   });
 }
 
@@ -64,11 +84,13 @@ export function playChime(): void {
   const prefs = storage.getPrefs();
   if (prefs.beep_muted || prefs.beep_volume === 0) return;
   const v = (prefs.beep_volume / 100) * 0.5;
-  try {
-    beep(523.25, 250, v); // C5
-    setTimeout(() => beep(659.25, 250, v), 180); // E5
-    setTimeout(() => beep(783.99, 500, v), 360); // G5
-  } catch {}
+  ensureAudio().then(() => {
+    try {
+      beep(523.25, 250, v); // C5
+      setTimeout(() => { try { beep(659.25, 250, v); } catch {} }, 180);
+      setTimeout(() => { try { beep(783.99, 500, v); } catch {} }, 360);
+    } catch {}
+  });
 }
 
 let voicesCache: SpeechSynthesisVoice[] = [];
@@ -88,9 +110,13 @@ export function speak(text: string): Promise<void> {
   return new Promise(resolve => {
     try {
       speechSynthesis.cancel();
+      // Chrome quirk: after cancel(), calling speak() in the same tick can be
+      // dropped. resume() + microtask defer keeps the utterance reliable.
+      try { speechSynthesis.resume(); } catch {}
       const u = new SpeechSynthesisUtterance(text);
       u.volume = prefs.voice_volume / 100;
       u.rate = 1;
+      u.lang = "en-US";
       const voices = getVoices();
       if (prefs.preferred_voice) {
         const v = voices.find(v => v.name === prefs.preferred_voice);
@@ -100,9 +126,12 @@ export function speak(text: string): Promise<void> {
       const finish = () => { if (!done) { done = true; resolve(); } };
       u.onend = finish;
       u.onerror = finish;
-      speechSynthesis.speak(u);
-      // safety timeout
-      setTimeout(finish, Math.max(2500, text.length * 120));
+      // Defer one tick so cancel() fully clears the queue first
+      setTimeout(() => {
+        try { speechSynthesis.speak(u); } catch { finish(); return; }
+        // safety timeout
+        setTimeout(finish, Math.max(2500, text.length * 120));
+      }, 0);
     } catch { resolve(); }
   });
 }
