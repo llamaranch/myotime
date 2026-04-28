@@ -51,6 +51,9 @@ function WorkoutDetail() {
             <Link
               to="/workout/$id/run"
               params={{ id: workout.id }}
+              onMouseDown={unlockAudio}
+              onTouchStart={unlockAudio}
+              onClick={unlockAudio}
               className="myo-btn col-span-2 py-4 text-lg"
             >
               <Play className="h-5 w-5" /> Start Workout
