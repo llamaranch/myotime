@@ -12,7 +12,23 @@ function ctx(): AudioContext {
 }
 
 export function unlockAudio() {
-  try { ctx(); } catch {}
+  try {
+    const c = ctx();
+    // Play a silent buffer synchronously to unlock on iOS/Safari
+    const buffer = c.createBuffer(1, 1, 22050);
+    const source = c.createBufferSource();
+    source.buffer = buffer;
+    source.connect(c.destination);
+    source.start(0);
+  } catch {}
+  // Prime speech synthesis with a silent utterance inside the gesture
+  try {
+    if (typeof speechSynthesis !== "undefined") {
+      const u = new SpeechSynthesisUtterance("");
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    }
+  } catch {}
 }
 
 function beep(freq: number, durationMs: number, volume: number) {
