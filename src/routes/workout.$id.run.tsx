@@ -4,7 +4,7 @@ import { Pause, Play, RotateCcw, SkipForward, X } from "lucide-react";
 import { storage } from "@/lib/storage";
 import type { Workout } from "@/lib/types";
 import { formatTime } from "@/lib/utils-time";
-import { playTransitionBeeps, playChime, speak, cancelSpeech } from "@/lib/audio";
+import { playTransitionBeeps, playChime, speak, cancelSpeech, unlockAudio } from "@/lib/audio";
 import { releaseWakeLock, requestWakeLock, setupWakeLockReacquire } from "@/lib/wakeLock";
 
 export const Route = createFileRoute("/workout/$id/run")({
@@ -40,6 +40,7 @@ function RunWorkout() {
     if (!w || w.activities.length === 0) { navigate({ to: "/" }); return; }
     setWorkout(w);
     workoutRef.current = w;
+    unlockAudio();
     requestWakeLock();
     const cleanup = setupWakeLockReacquire(() => phaseRef.current !== "complete" && phaseRef.current !== "idle");
     startSequence(w);
@@ -134,7 +135,7 @@ function RunWorkout() {
       endingRef.current = false;
       cancelSpeech();
       releaseWakeLock();
-      playChime();
+      playChime().catch(() => {});
       setTimeout(
         () => navigate({ to: "/workout/$id/done", params: { id } }),
         400,

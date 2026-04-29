@@ -1,14 +1,11 @@
 import { storage } from "./storage";
 
 // ---------------------------------------------------------------------------
-// AudioContext — the single source of truth for all sound on the page.
-// We lazily create it on first user gesture (iOS requirement) and never
-// dispose of it during the app's lifetime.
+// AudioContext singleton.
 // ---------------------------------------------------------------------------
 
 let audioCtx: AudioContext | null = null;
 let audioUnlocked = false;
-let speechUnlocked = false;
 
 function getCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -26,24 +23,28 @@ function getCtx(): AudioContext | null {
   return audioCtx;
 }
 
-// ---------------------------------------------------------------------------
-// unlockAudio() — MUST be called synchronously inside a user gesture handler
-// (e.g. an onClick or onPointerDown). Calling it from a useEffect or any
-// async context will not work on iOS.
-// ---------------------------------------------------------------------------
+async function ensureRunning(): Promise<boolean> {
+  const c = getCtx();
+  if (!c) return false;
+  if (c.state === "running") return true;
+  try {
+    await c.resume();
+  } catch {
+    // ignore
+  }
+  return (c.state as string) === "running";
+}
 
 export function unlockAudio(): void {
   const c = getCtx();
   if (!c) return;
 
-  // 1. Resume the AudioContext synchronously.
   try {
     if (c.state !== "running") {
       c.resume().catch(() => {});
     }
   } catch {}
 
-  // 2. Play a 1-sample silent buffer to confirm unlock on iOS.
   try {
     const buffer = c.createBuffer(1, 1, 22050);
     const source = c.createBufferSource();
@@ -54,16 +55,13 @@ export function unlockAudio(): void {
 
   audioUnlocked = true;
 
-  // 3. Prime speechSynthesis.
   try {
     if (typeof speechSynthesis !== "undefined") {
       try { speechSynthesis.getVoices(); } catch {}
-
       const u = new SpeechSynthesisUtterance(".");
       u.volume = 0;
       u.rate = 1;
       try { speechSynthesis.speak(u); } catch {}
-      speechUnlocked = true;
     }
   } catch {}
 }
@@ -72,12 +70,17 @@ export function isAudioUnlocked(): boolean {
   return audioUnlocked;
 }
 
-function playBeep(freq: number, durationMs: number, volume: number): void {
+async function playBeep(
+  freq: number,
+  durationMs: number,
+  volume: number,
+): Promise<void> {
   const c = getCtx();
   if (!c) return;
-  if (c.state !== "running") {
-    try { c.resume(); } catch {}
-  }
+
+  const ok = await ensureRunning();
+  if (!ok) return;
+
   try {
     const osc = c.createOscillator();
     const gain = c.createGain();
@@ -96,28 +99,34 @@ function playBeep(freq: number, durationMs: number, volume: number): void {
   } catch {}
 }
 
-export function playTransitionBeeps(): Promise<void> {
+export async function playTransitionBeeps(): Promise<void> {
   const prefs = storage.getPrefs();
   if (prefs.beep_muted || prefs.beep_volume === 0) {
-    return new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 100));
+    return;
   }
   const v = (prefs.beep_volume / 100) * 0.6;
-  playBeep(880, 180, v);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      playBeep(880, 180, v);
-      setTimeout(resolve, 200);
-    }, 250);
-  });
+
+  await ensureRunning();
+
+  await playBeep(880, 180, v);
+  await new Promise((r) => setTimeout(r, 80));
+  await playBeep(880, 180, v);
+  await new Promise((r) => setTimeout(r, 100));
 }
 
-export function playChime(): void {
+export async function playChime(): Promise<void> {
   const prefs = storage.getPrefs();
   if (prefs.beep_muted || prefs.beep_volume === 0) return;
   const v = (prefs.beep_volume / 100) * 0.5;
-  playBeep(523.25, 250, v); // C5
-  setTimeout(() => playBeep(659.25, 250, v), 180); // E5
-  setTimeout(() => playBeep(783.99, 500, v), 360); // G5
+
+  await ensureRunning();
+
+  await playBeep(523.25, 250, v);
+  await new Promise((r) => setTimeout(r, 50));
+  await playBeep(659.25, 250, v);
+  await new Promise((r) => setTimeout(r, 50));
+  await playBeep(783.99, 500, v);
 }
 
 let voicesCache: SpeechSynthesisVoice[] = [];
