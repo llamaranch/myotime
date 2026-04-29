@@ -1,4 +1,5 @@
 import { storage } from "./storage";
+import { dlog } from "./debug-log";
 
 // ---------------------------------------------------------------------------
 // AudioContext singleton.
@@ -13,10 +14,15 @@ function getCtx(): AudioContext | null {
     const C =
       (window as any).AudioContext ||
       (window as any).webkitAudioContext;
-    if (!C) return null;
+    if (!C) {
+      dlog("error", "No AudioContext class available");
+      return null;
+    }
     try {
       audioCtx = new C() as AudioContext;
-    } catch {
+      dlog("info", `AudioContext created, state=${audioCtx.state}`);
+    } catch (e) {
+      dlog("error", `AudioContext creation failed: ${String(e)}`);
       return null;
     }
   }
@@ -25,25 +31,42 @@ function getCtx(): AudioContext | null {
 
 async function ensureRunning(): Promise<boolean> {
   const c = getCtx();
-  if (!c) return false;
+  if (!c) {
+    dlog("warn", "ensureRunning: no context");
+    return false;
+  }
   if (c.state === "running") return true;
+  dlog("info", `ensureRunning: state=${c.state}, calling resume()`);
   try {
     await c.resume();
-  } catch {
-    // ignore
+  } catch (e) {
+    dlog("error", `resume threw: ${String(e)}`);
   }
-  return (c.state as string) === "running";
+  dlog("info", `ensureRunning: post-resume state=${c.state}`);
+  return c.state === "running";
 }
 
+// ---------------------------------------------------------------------------
+// unlockAudio() — synchronous, must run inside a user gesture.
+// ---------------------------------------------------------------------------
+
 export function unlockAudio(): void {
+  dlog("info", "unlockAudio() called");
   const c = getCtx();
   if (!c) return;
 
   try {
     if (c.state !== "running") {
-      c.resume().catch(() => {});
+      dlog("info", `unlockAudio: state=${c.state}, calling resume()`);
+      c.resume()
+        .then(() => dlog("info", `unlockAudio: resume completed, state=${c.state}`))
+        .catch((e) => dlog("error", `unlockAudio: resume rejected: ${String(e)}`));
+    } else {
+      dlog("info", "unlockAudio: already running");
     }
-  } catch {}
+  } catch (e) {
+    dlog("error", `unlockAudio: resume threw: ${String(e)}`);
+  }
 
   try {
     const buffer = c.createBuffer(1, 1, 22050);
@@ -51,7 +74,10 @@ export function unlockAudio(): void {
     source.buffer = buffer;
     source.connect(c.destination);
     source.start(0);
-  } catch {}
+    dlog("info", "unlockAudio: silent buffer started");
+  } catch (e) {
+    dlog("error", `unlockAudio: silent buffer failed: ${String(e)}`);
+  }
 
   audioUnlocked = true;
 
@@ -61,7 +87,12 @@ export function unlockAudio(): void {
       const u = new SpeechSynthesisUtterance(".");
       u.volume = 0;
       u.rate = 1;
-      try { speechSynthesis.speak(u); } catch {}
+      try {
+        speechSynthesis.speak(u);
+        dlog("info", "unlockAudio: speech primed");
+      } catch (e) {
+        dlog("error", `unlockAudio: speech prime failed: ${String(e)}`);
+      }
     }
   } catch {}
 }
@@ -70,16 +101,26 @@ export function isAudioUnlocked(): boolean {
   return audioUnlocked;
 }
 
+// ---------------------------------------------------------------------------
+// Beep generation.
+// ---------------------------------------------------------------------------
+
 async function playBeep(
   freq: number,
   durationMs: number,
   volume: number,
 ): Promise<void> {
   const c = getCtx();
-  if (!c) return;
+  if (!c) {
+    dlog("warn", "playBeep: no context");
+    return;
+  }
 
   const ok = await ensureRunning();
-  if (!ok) return;
+  if (!ok) {
+    dlog("error", `playBeep(${freq}): ensureRunning returned false, state=${c.state}`);
+    return;
+  }
 
   try {
     const osc = c.createOscillator();
@@ -96,12 +137,17 @@ async function playBeep(
     gain.gain.linearRampToValueAtTime(0, now + dur);
     osc.start(now);
     osc.stop(now + dur + 0.02);
-  } catch {}
+    dlog("info", `playBeep(${freq}, ${durationMs}ms, vol=${volume.toFixed(2)}) started, ctxTime=${now.toFixed(3)}`);
+  } catch (e) {
+    dlog("error", `playBeep failed: ${String(e)}`);
+  }
 }
 
 export async function playTransitionBeeps(): Promise<void> {
+  dlog("info", "playTransitionBeeps()");
   const prefs = storage.getPrefs();
   if (prefs.beep_muted || prefs.beep_volume === 0) {
+    dlog("info", `beep muted=${prefs.beep_muted} vol=${prefs.beep_volume}`);
     await new Promise((r) => setTimeout(r, 100));
     return;
   }
@@ -116,8 +162,12 @@ export async function playTransitionBeeps(): Promise<void> {
 }
 
 export async function playChime(): Promise<void> {
+  dlog("info", "playChime()");
   const prefs = storage.getPrefs();
-  if (prefs.beep_muted || prefs.beep_volume === 0) return;
+  if (prefs.beep_muted || prefs.beep_volume === 0) {
+    dlog("info", `chime muted=${prefs.beep_muted} vol=${prefs.beep_volume}`);
+    return;
+  }
   const v = (prefs.beep_volume / 100) * 0.5;
 
   await ensureRunning();
@@ -128,6 +178,10 @@ export async function playChime(): Promise<void> {
   await new Promise((r) => setTimeout(r, 50));
   await playBeep(783.99, 500, v);
 }
+
+// ---------------------------------------------------------------------------
+// Speech synthesis.
+// ---------------------------------------------------------------------------
 
 let voicesCache: SpeechSynthesisVoice[] = [];
 
@@ -155,9 +209,10 @@ export function speak(text: string): Promise<void> {
 
   return new Promise((resolve) => {
     let done = false;
-    const finish = () => {
+    const finish = (why: string) => {
       if (!done) {
         done = true;
+        dlog("info", `speak("${text}") finished via ${why}`);
         resolve();
       }
     };
@@ -165,8 +220,9 @@ export function speak(text: string): Promise<void> {
     let utter: SpeechSynthesisUtterance;
     try {
       utter = new SpeechSynthesisUtterance(text);
-    } catch {
-      finish();
+    } catch (e) {
+      dlog("error", `speak: utterance creation failed: ${String(e)}`);
+      finish("create-error");
       return;
     }
     utter.volume = prefs.voice_volume / 100;
@@ -178,16 +234,21 @@ export function speak(text: string): Promise<void> {
       if (v) utter.voice = v;
     }
 
-    utter.onend = finish;
-    utter.onerror = finish;
+    utter.onend = () => finish("onend");
+    utter.onerror = (ev) => {
+      dlog("warn", `speak("${text}") onerror: ${(ev as any).error || "unknown"}`);
+      finish("onerror");
+    };
 
     const fallbackMs = Math.min(5000, 800 + text.length * 90);
-    setTimeout(finish, fallbackMs);
+    setTimeout(() => finish("fallback"), fallbackMs);
 
     try {
       speechSynthesis.speak(utter);
-    } catch {
-      finish();
+      dlog("info", `speak("${text}") submitted`);
+    } catch (e) {
+      dlog("error", `speak: speechSynthesis.speak threw: ${String(e)}`);
+      finish("speak-error");
     }
   });
 }
