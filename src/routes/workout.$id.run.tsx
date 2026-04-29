@@ -6,7 +6,7 @@ import type { Workout } from "@/lib/types";
 import { formatTime } from "@/lib/utils-time";
 import { playTransitionBeeps, playChime, speak, cancelSpeech, unlockAudio } from "@/lib/audio";
 import { releaseWakeLock, requestWakeLock, setupWakeLockReacquire } from "@/lib/wakeLock";
-import { DebugOverlay } from "@/components/DebugOverlay";
+
 
 export const Route = createFileRoute("/workout/$id/run")({
   head: () => ({ meta: [{ title: "Active Workout — MyoTime" }] }),
@@ -68,9 +68,19 @@ function RunWorkout() {
   }
   function startTick() {
     stopTick();
-    lastTickRef.current = performance.now();
+    // Sentinel: -1 means "first frame, do not subtract dt". The first frame's
+    // timestamp is used purely as a baseline for subsequent dt calculations.
+    // This prevents the visible flicker when an activity starts (e.g., a
+    // 5-second activity briefly showing 0:04 before the first second has
+    // actually elapsed).
+    lastTickRef.current = -1;
     const step = (t: number) => {
-      const dt = (t - lastTickRef.current) / 1000;
+      if (lastTickRef.current === -1) {
+        lastTickRef.current = t;
+        tickRef.current = requestAnimationFrame(step);
+        return;
+      }
+      const dt = Math.max(0, (t - lastTickRef.current) / 1000);
       lastTickRef.current = t;
       if (phaseRef.current === "active") {
         const next = remainingRef.current - dt;
@@ -131,6 +141,13 @@ function RunWorkout() {
     const nextIdx = idxRef.current + 1;
 
     if (nextIdx >= activeWorkout.activities.length) {
+      // Bail out if the user already stopped the workout during the
+      // inter-activity transition. phaseRef is set to "complete" by onStop
+      // before navigation; we should not play the chime in that case.
+      if (phaseRef.current === "complete") {
+        endingRef.current = false;
+        return;
+      }
       setPhase("complete");
       phaseRef.current = "complete";
       endingRef.current = false;
@@ -206,7 +223,17 @@ function RunWorkout() {
 
   const onStop = () => {
     if (confirm("Stop workout? Progress will be lost.")) {
-      stopTick(); cancelSpeech(); releaseWakeLock();
+      // Set phase to "complete" first. Any in-flight onActivityEnd or
+      // startSequence will see phaseRef.current change and bail out via
+      // its existing phase guards. This prevents the workout-complete
+      // chime (or other delayed audio) from firing after the user has
+      // navigated away.
+      setPhase("complete");
+      phaseRef.current = "complete";
+      endingRef.current = false;
+      stopTick();
+      cancelSpeech();
+      releaseWakeLock();
       navigate({ to: "/workout/$id", params: { id } });
     }
   };
@@ -266,7 +293,6 @@ function RunWorkout() {
           )}
         </div>
       </div>
-      <DebugOverlay />
     </div>
   );
 }

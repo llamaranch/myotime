@@ -47,6 +47,12 @@ function SettingsPage() {
               className="flex-1 accent-accent" />
             <span className="timer-digits w-10 text-right text-sm text-muted-foreground">{prefs.beep_volume}</span>
           </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            On iPhone, beep and chime sounds require the ringer to be on. If your
+            device's silent switch (the small toggle on the side of the phone) shows
+            an orange dot, beeps will be muted by iOS even when this app's volume is
+            set to maximum. Voice cues are not affected by the silent switch.
+          </p>
         </section>
 
         <section className="myo-card mt-4 space-y-4 p-5">
