@@ -4,7 +4,7 @@ import { Pause, Play, RotateCcw, SkipForward, X } from "lucide-react";
 import { storage } from "@/lib/storage";
 import type { Workout } from "@/lib/types";
 import { formatTime } from "@/lib/utils-time";
-import { playTransitionBeeps, playChime, speak, cancelSpeech, unlockAudio } from "@/lib/audio";
+import { playTransitionBeeps, playChime, speak, cancelSpeech } from "@/lib/audio";
 import { releaseWakeLock, requestWakeLock, setupWakeLockReacquire } from "@/lib/wakeLock";
 
 export const Route = createFileRoute("/workout/$id/run")({
@@ -40,7 +40,6 @@ function RunWorkout() {
     if (!w || w.activities.length === 0) { navigate({ to: "/" }); return; }
     setWorkout(w);
     workoutRef.current = w;
-    unlockAudio();
     requestWakeLock();
     const cleanup = setupWakeLockReacquire(() => phaseRef.current !== "complete" && phaseRef.current !== "idle");
     startSequence(w);
@@ -96,17 +95,24 @@ function RunWorkout() {
     setIdx(0); idxRef.current = 0;
     setRemaining(w.activities[0].duration_seconds);
     remainingRef.current = w.activities[0].duration_seconds;
-    // Small delay to let the audio/speech unlock settle before first utterance
-    await wait(300);
+    await wait(500);
     if (phaseRef.current !== "starting") return;
-    await speak("three"); await wait(250);
+
+    await speak("three");
     if (phaseRef.current !== "starting") return;
-    await speak("two"); await wait(250);
+    await wait(200);
+
+    await speak("two");
     if (phaseRef.current !== "starting") return;
-    await speak("one"); await wait(250);
+    await wait(200);
+
+    await speak("one");
     if (phaseRef.current !== "starting") return;
+    await wait(200);
+
     await speak(w.activities[0].name);
     if (phaseRef.current !== "starting") return;
+
     setPhase("active");
     phaseRef.current = "active";
     startTick();
@@ -116,8 +122,12 @@ function RunWorkout() {
 
   async function onActivityEnd() {
     const activeWorkout = workoutRef.current;
-    if (!activeWorkout) { endingRef.current = false; return; }
+    if (!activeWorkout) {
+      endingRef.current = false;
+      return;
+    }
     const nextIdx = idxRef.current + 1;
+
     if (nextIdx >= activeWorkout.activities.length) {
       setPhase("complete");
       phaseRef.current = "complete";
@@ -125,25 +135,38 @@ function RunWorkout() {
       cancelSpeech();
       releaseWakeLock();
       playChime();
-      setTimeout(() => navigate({ to: "/workout/$id/done", params: { id } }), 400);
+      setTimeout(
+        () => navigate({ to: "/workout/$id/done", params: { id } }),
+        400,
+      );
       return;
     }
+
     setPhase("transition");
     phaseRef.current = "transition";
-    // Fire beeps but don't let a stuck audio engine freeze the workout
-    playTransitionBeeps().catch(() => {});
-    await wait(600);
-    if (phaseRef.current !== "transition") return;
+
+    await playTransitionBeeps();
+    if (phaseRef.current !== "transition") {
+      endingRef.current = false;
+      return;
+    }
+
     const next = activeWorkout.activities[nextIdx];
-    setIdx(nextIdx); idxRef.current = nextIdx;
+    setIdx(nextIdx);
+    idxRef.current = nextIdx;
     setRemaining(next.duration_seconds);
     remainingRef.current = next.duration_seconds;
+
+    await speak(next.name);
+    if (phaseRef.current !== "transition") {
+      endingRef.current = false;
+      return;
+    }
+
     endingRef.current = false;
     setPhase("active");
     phaseRef.current = "active";
     startTick();
-    // Race speech against a hard timeout so we always advance
-    Promise.race([speak(next.name), wait(2000)]).catch(() => {});
   }
 
   const togglePause = () => {
@@ -161,6 +184,9 @@ function RunWorkout() {
     if (!workout) return;
     stopTick();
     cancelSpeech();
+    // Yield one microtask so iOS doesn't drop the next speak() call
+    await Promise.resolve();
+    endingRef.current = false;
     await onActivityEnd();
   };
 
