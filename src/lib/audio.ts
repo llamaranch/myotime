@@ -43,7 +43,7 @@ async function ensureRunning(): Promise<boolean> {
     dlog("error", `resume threw: ${String(e)}`);
   }
   dlog("info", `ensureRunning: post-resume state=${c.state}`);
-  return c.state === "running";
+  return (c.state as string) === "running";
 }
 
 // ---------------------------------------------------------------------------
