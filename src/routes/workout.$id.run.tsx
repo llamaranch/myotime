@@ -266,6 +266,7 @@ function RunWorkout() {
           )}
         </div>
       </div>
+      <DebugOverlay />
     </div>
   );
 }
