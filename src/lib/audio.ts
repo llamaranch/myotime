@@ -32,7 +32,7 @@ async function ensureRunning(): Promise<boolean> {
   } catch {
     // ignore
   }
-  return c.state === "running";
+  return (c.state as string) === "running";
 }
 
 export function unlockAudio(): void {
