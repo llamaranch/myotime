@@ -6,6 +6,7 @@ import type { Workout } from "@/lib/types";
 import { formatTime } from "@/lib/utils-time";
 import { playTransitionBeeps, playChime, speak, cancelSpeech, unlockAudio } from "@/lib/audio";
 import { releaseWakeLock, requestWakeLock, setupWakeLockReacquire } from "@/lib/wakeLock";
+import { DebugOverlay } from "@/components/DebugOverlay";
 
 export const Route = createFileRoute("/workout/$id/run")({
   head: () => ({ meta: [{ title: "Active Workout — MyoTime" }] }),
@@ -218,11 +219,16 @@ function RunWorkout() {
   return (
     <div className="honeycomb-bg flex min-h-screen flex-col">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 pt-4">
-        <button onClick={onStop} aria-label="Stop workout" className="rounded-full p-2 hover:bg-secondary">
+      <div className="relative z-20 flex items-center justify-between px-2 pt-2 pb-2">
+        <button
+          onClick={onStop}
+          aria-label="Stop workout"
+          className="rounded-full p-3 hover:bg-secondary"
+          style={{ minWidth: 48, minHeight: 48 }}
+        >
           <X className="h-6 w-6" />
         </button>
-        <span className="timer-digits text-sm text-muted-foreground">{timeOfDay}</span>
+        <span className="timer-digits text-sm text-muted-foreground pr-2">{timeOfDay}</span>
       </div>
 
       {/* Main: portrait stacks, landscape splits */}
