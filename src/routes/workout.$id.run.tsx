@@ -184,6 +184,9 @@ function RunWorkout() {
     if (!workout) return;
     stopTick();
     cancelSpeech();
+    // Yield one microtask so iOS doesn't drop the next speak() call
+    await Promise.resolve();
+    endingRef.current = false;
     await onActivityEnd();
   };
 
