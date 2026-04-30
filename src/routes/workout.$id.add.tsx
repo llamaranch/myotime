@@ -26,7 +26,7 @@ function AddActivity() {
   const [pendingActivity, setPendingActivity] = useState<Activity | null>(null);
   const [showCustom, setShowCustom] = useState(false);
   const [customName, setCustomName] = useState("");
-  const [customFav, setCustomFav] = useState(false);
+  const [customFav, setCustomFav] = useState(true);
 
   useEffect(() => { loadLibrary().then(setLibrary); }, []);
 
