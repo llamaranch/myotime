@@ -115,9 +115,11 @@ function AddActivity() {
     storage.savePrefs(next);
     setShowCustom(false);
     setCustomName("");
-    setCustomFav(false);
+    setCustomFav(true);
     setPendingActivity(newAct);
   };
+
+  const customLimitReached = prefs.custom_activities.length >= MAX_CUSTOM_ACTIVITIES;
 
   return (
     <div className="honeycomb-bg min-h-screen">
