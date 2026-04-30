@@ -151,9 +151,20 @@ function AddActivity() {
             )}
           </div>
 
-          <button onClick={() => setShowCustom(true)} className="myo-btn-ghost w-full">
-            <Plus className="h-4 w-4" /> Add Custom Activity
-          </button>
+          <div>
+            <button
+              onClick={() => { if (!customLimitReached) setShowCustom(true); }}
+              disabled={customLimitReached}
+              className="myo-btn-ghost w-full disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Plus className="h-4 w-4" /> Add Custom Activity
+            </button>
+            {customLimitReached && (
+              <p className="mt-2 px-3 text-xs text-muted-foreground">
+                Maximum of {MAX_CUSTOM_ACTIVITIES} custom activities reached. Delete some custom activities to create more.
+              </p>
+            )}
+          </div>
 
           <div className="grid grid-cols-3 gap-2">
             {(["favorites", "body", "type"] as Tab[]).map(t => (
