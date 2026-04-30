@@ -206,9 +206,18 @@ function EditWorkout() {
           </SortableContext>
         </DndContext>
 
-        <button onClick={() => goAddActivity(null)} className="myo-btn mt-4 w-full">
+        <button
+          onClick={() => goAddActivity(null)}
+          className="myo-btn mt-4 w-full disabled:opacity-60 disabled:cursor-not-allowed"
+          disabled={activities.length >= MAX_ACTIVITIES_PER_WORKOUT}
+        >
           <Plus className="h-4 w-4" /> Add Activity
         </button>
+        {activities.length >= MAX_ACTIVITIES_PER_WORKOUT && (
+          <p className="mt-2 px-3 text-xs text-muted-foreground">
+            This workout has {MAX_ACTIVITIES_PER_WORKOUT} activities (the maximum). Delete one to add another.
+          </p>
+        )}
 
         <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 backdrop-blur">
           <div className="mx-auto flex max-w-xl gap-3 px-4 py-3">
