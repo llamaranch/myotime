@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, GripVertical, Plus, Trash2, Replace as ReplaceIcon, Clock } from "lucide-react";
-import { storage, uid } from "@/lib/storage";
+import { storage, uid, MAX_ACTIVITIES_PER_WORKOUT } from "@/lib/storage";
 import type { Workout, WorkoutActivity } from "@/lib/types";
 import { formatTime, totalDuration } from "@/lib/utils-time";
 import {
