@@ -11,7 +11,19 @@ export const storage = {
     if (!isBrowser()) return [];
     try {
       const raw = localStorage.getItem(KEY_WORKOUTS);
-      return raw ? (JSON.parse(raw) as Workout[]) : [];
+      const list = raw ? (JSON.parse(raw) as Workout[]) : [];
+      // Migrate: assign sequential order to any workout missing one,
+      // preserving current array position.
+      let needsSave = false;
+      list.forEach((w, i) => {
+        if (typeof w.order !== "number") {
+          w.order = i;
+          needsSave = true;
+        }
+      });
+      list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      if (needsSave) localStorage.setItem(KEY_WORKOUTS, JSON.stringify(list));
+      return list;
     } catch {
       return [];
     }
@@ -23,8 +35,12 @@ export const storage = {
   upsertWorkout(workout: Workout) {
     const all = this.getWorkouts();
     const idx = all.findIndex(w => w.id === workout.id);
-    if (idx >= 0) all[idx] = workout;
-    else all.unshift(workout);
+    if (idx >= 0) {
+      all[idx] = { ...workout, order: workout.order ?? all[idx].order ?? idx };
+    } else {
+      const maxOrder = all.reduce((m, w) => Math.max(m, w.order ?? 0), -1);
+      all.push({ ...workout, order: workout.order ?? maxOrder + 1 });
+    }
     this.saveWorkouts(all);
   },
   deleteWorkout(id: string) {
