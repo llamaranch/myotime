@@ -24,6 +24,7 @@ export interface Workout {
   activities: WorkoutActivity[];
   created_at: number;
   updated_at: number;
+  order?: number;
 }
 
 export interface UserPreferences {
