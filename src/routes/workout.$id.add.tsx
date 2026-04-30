@@ -101,6 +101,7 @@ function AddActivity() {
   const addCustom = () => {
     const trimmed = customName.trim();
     if (!trimmed) return;
+    if (prefs.custom_activities.length >= MAX_CUSTOM_ACTIVITIES) return;
     const newAct: Activity = {
       id: uid(),
       name: trimmed,
