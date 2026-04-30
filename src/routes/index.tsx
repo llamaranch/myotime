@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Copy, GripVertical, MoreVertical, Plus, Settings as SettingsIcon, Trash2 } from "lucide-react";
-import { storage, uid } from "@/lib/storage";
+import { storage, uid, MAX_WORKOUTS } from "@/lib/storage";
 import type { Workout } from "@/lib/types";
 import { formatTime, totalDuration } from "@/lib/utils-time";
 import { loadLibrary } from "@/lib/activities";
@@ -123,19 +123,39 @@ function HomePage() {
         </header>
 
         <div className="space-y-3">
-          <Link
-            to="/workout/$id/edit"
-            params={{ id: "new" }}
-            className="myo-card flex items-center justify-between p-5 transition-colors hover:bg-secondary"
-            style={{ borderColor: "var(--color-accent)" }}
-          >
-            <span className="flex items-center gap-3 text-accent">
-              <span className="grid h-9 w-9 place-items-center rounded-full border border-accent">
-                <Plus className="h-5 w-5" />
+          {workouts.length >= MAX_WORKOUTS ? (
+            <div>
+              <div
+                aria-disabled="true"
+                className="myo-card flex items-center justify-between p-5 opacity-60 cursor-not-allowed pointer-events-none"
+                style={{ borderColor: "var(--color-accent)" }}
+              >
+                <span className="flex items-center gap-3 text-accent">
+                  <span className="grid h-9 w-9 place-items-center rounded-full border border-accent">
+                    <Plus className="h-5 w-5" />
+                  </span>
+                  <span className="text-lg font-semibold">Create New Workout</span>
+                </span>
+              </div>
+              <p className="mt-2 px-3 text-xs text-muted-foreground">
+                Maximum of {MAX_WORKOUTS} workouts reached. Delete one to create a new workout.
+              </p>
+            </div>
+          ) : (
+            <Link
+              to="/workout/$id/edit"
+              params={{ id: "new" }}
+              className="myo-card flex items-center justify-between p-5 transition-colors hover:bg-secondary"
+              style={{ borderColor: "var(--color-accent)" }}
+            >
+              <span className="flex items-center gap-3 text-accent">
+                <span className="grid h-9 w-9 place-items-center rounded-full border border-accent">
+                  <Plus className="h-5 w-5" />
+                </span>
+                <span className="text-lg font-semibold">Create New Workout</span>
               </span>
-              <span className="text-lg font-semibold">Create New Workout</span>
-            </span>
-          </Link>
+            </Link>
+          )}
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={workouts.map((w) => w.id)} strategy={verticalListSortingStrategy}>

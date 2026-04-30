@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Plus, Star } from "lucide-react";
 import { loadLibrary } from "@/lib/activities";
-import { storage, uid } from "@/lib/storage";
+import { storage, uid, MAX_CUSTOM_ACTIVITIES, MAX_ACTIVITIES_PER_WORKOUT } from "@/lib/storage";
 import type { Activity } from "@/lib/types";
 import { BODY_PARTS, ACTIVITY_TYPES } from "@/lib/types";
 import { TimePicker, loadPending, savePending, clearPending } from "./workout.$id.edit";
@@ -26,7 +26,7 @@ function AddActivity() {
   const [pendingActivity, setPendingActivity] = useState<Activity | null>(null);
   const [showCustom, setShowCustom] = useState(false);
   const [customName, setCustomName] = useState("");
-  const [customFav, setCustomFav] = useState(false);
+  const [customFav, setCustomFav] = useState(true);
 
   useEffect(() => { loadLibrary().then(setLibrary); }, []);
 
@@ -77,6 +77,12 @@ function AddActivity() {
     if (pending.replaceIndex !== null && pending.replaceIndex >= 0 && pending.replaceIndex < next.length) {
       next[pending.replaceIndex] = { ...newWA, duration_seconds: pending.activities[pending.replaceIndex].duration_seconds };
     } else {
+      if (next.length >= MAX_ACTIVITIES_PER_WORKOUT) {
+        console.warn("Activity limit reached; skipping append.");
+        setPendingActivity(null);
+        back();
+        return;
+      }
       next.push(newWA);
     }
     savePending({ ...pending, activities: next, replaceIndex: null });
@@ -95,6 +101,7 @@ function AddActivity() {
   const addCustom = () => {
     const trimmed = customName.trim();
     if (!trimmed) return;
+    if (prefs.custom_activities.length >= MAX_CUSTOM_ACTIVITIES) return;
     const newAct: Activity = {
       id: uid(),
       name: trimmed,
@@ -109,9 +116,11 @@ function AddActivity() {
     storage.savePrefs(next);
     setShowCustom(false);
     setCustomName("");
-    setCustomFav(false);
+    setCustomFav(true);
     setPendingActivity(newAct);
   };
+
+  const customLimitReached = prefs.custom_activities.length >= MAX_CUSTOM_ACTIVITIES;
 
   return (
     <div className="honeycomb-bg min-h-screen">
@@ -142,9 +151,20 @@ function AddActivity() {
             )}
           </div>
 
-          <button onClick={() => setShowCustom(true)} className="myo-btn-ghost w-full">
-            <Plus className="h-4 w-4" /> Add Custom Activity
-          </button>
+          <div>
+            <button
+              onClick={() => { if (!customLimitReached) setShowCustom(true); }}
+              disabled={customLimitReached}
+              className="myo-btn-ghost w-full disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Plus className="h-4 w-4" /> Add Custom Activity
+            </button>
+            {customLimitReached && (
+              <p className="mt-2 px-3 text-xs text-muted-foreground">
+                Maximum of {MAX_CUSTOM_ACTIVITIES} custom activities reached. Delete some custom activities to create more.
+              </p>
+            )}
+          </div>
 
           <div className="grid grid-cols-3 gap-2">
             {(["favorites", "body", "type"] as Tab[]).map(t => (
@@ -236,7 +256,7 @@ function AddActivity() {
                           onClick={() => {
                             setShowCustom(false);
                             setCustomName("");
-                            setCustomFav(false);
+                            setCustomFav(true);
                             onPick(a);
                           }}
                           className="w-full rounded-md px-3 py-2 text-left text-sm hover:bg-secondary"
@@ -256,7 +276,7 @@ function AddActivity() {
                 Save as favorite
               </label>
               <div className="mt-4 flex gap-2">
-                <button onClick={() => { setShowCustom(false); setCustomName(""); }} className="myo-btn-ghost flex-1">Cancel</button>
+                <button onClick={() => { setShowCustom(false); setCustomName(""); setCustomFav(true); }} className="myo-btn-ghost flex-1">Cancel</button>
                 <button onClick={addCustom} className="myo-btn flex-1">Add</button>
               </div>
             </div>

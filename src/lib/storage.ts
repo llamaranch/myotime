@@ -4,6 +4,10 @@ import { DEFAULT_PREFS } from "./types";
 const KEY_WORKOUTS = "myotime.workouts.v1";
 const KEY_PREFS = "myotime.prefs.v1";
 
+export const MAX_WORKOUTS = 100;
+export const MAX_ACTIVITIES_PER_WORKOUT = 100;
+export const MAX_CUSTOM_ACTIVITIES = 100;
+
 const isBrowser = () => typeof window !== "undefined" && typeof localStorage !== "undefined";
 
 export const storage = {
