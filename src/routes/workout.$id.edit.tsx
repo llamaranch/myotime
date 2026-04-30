@@ -117,6 +117,7 @@ function EditWorkout() {
   };
 
   const goAddActivity = (replaceIndex: number | null) => {
+    if (replaceIndex === null && activities.length >= MAX_ACTIVITIES_PER_WORKOUT) return;
     savePending({ workoutId, name, activities, replaceIndex });
     navigate({ to: "/workout/$id/add", params: { id: workoutId } });
   };
