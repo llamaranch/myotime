@@ -77,6 +77,12 @@ function AddActivity() {
     if (pending.replaceIndex !== null && pending.replaceIndex >= 0 && pending.replaceIndex < next.length) {
       next[pending.replaceIndex] = { ...newWA, duration_seconds: pending.activities[pending.replaceIndex].duration_seconds };
     } else {
+      if (next.length >= MAX_ACTIVITIES_PER_WORKOUT) {
+        console.warn("Activity limit reached; skipping append.");
+        setPendingActivity(null);
+        back();
+        return;
+      }
       next.push(newWA);
     }
     savePending({ ...pending, activities: next, replaceIndex: null });
