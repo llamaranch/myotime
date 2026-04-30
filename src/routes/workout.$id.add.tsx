@@ -276,7 +276,7 @@ function AddActivity() {
                 Save as favorite
               </label>
               <div className="mt-4 flex gap-2">
-                <button onClick={() => { setShowCustom(false); setCustomName(""); }} className="myo-btn-ghost flex-1">Cancel</button>
+                <button onClick={() => { setShowCustom(false); setCustomName(""); setCustomFav(true); }} className="myo-btn-ghost flex-1">Cancel</button>
                 <button onClick={addCustom} className="myo-btn flex-1">Add</button>
               </div>
             </div>
