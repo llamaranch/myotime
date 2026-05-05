@@ -1,5 +1,7 @@
-import { Outlet, createRootRoute, HeadContent, Scripts, Link } from "@tanstack/react-router";
+import { Outlet, createRootRoute, HeadContent, Scripts, Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import appCss from "../styles.css?url";
+import { AuthProvider, useAuth } from "@/lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -40,9 +42,47 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootShell,
-  component: () => <Outlet />,
+  component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
+
+function RootComponent() {
+  return (
+    <AuthProvider>
+      <AuthGate>
+        <Outlet />
+      </AuthGate>
+    </AuthProvider>
+  );
+}
+
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { session, loading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const path = location.pathname;
+  const isAuthRoute = path.startsWith("/auth/");
+
+  useEffect(() => {
+    if (loading) return;
+    if (!session && !isAuthRoute) {
+      navigate({ to: "/auth/sign-in", replace: true });
+    } else if (session && isAuthRoute) {
+      navigate({ to: "/", replace: true });
+    }
+  }, [loading, session, isAuthRoute, navigate]);
+
+  if (loading) {
+    return <div className="honeycomb-bg min-h-screen" />;
+  }
+  if (!session && !isAuthRoute) {
+    return <div className="honeycomb-bg min-h-screen" />;
+  }
+  if (session && isAuthRoute) {
+    return <div className="honeycomb-bg min-h-screen" />;
+  }
+  return <>{children}</>;
+}
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (

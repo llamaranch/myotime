@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
 import { storage } from "@/lib/storage";
 import type { UserPreferences } from "@/lib/types";
 import { getVoices } from "@/lib/audio";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — MyoTime" }] }),
@@ -13,6 +14,13 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const [prefs, setPrefs] = useState<UserPreferences>(() => storage.getPrefs());
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const onLogout = async () => {
+    await signOut();
+    navigate({ to: "/auth/sign-in" });
+  };
 
   useEffect(() => {
     const update = () => setVoices(getVoices());
@@ -89,6 +97,16 @@ function SettingsPage() {
           <p className="mt-2 text-sm text-muted-foreground">
             A mobile-first interval timer for exercise workouts. Build custom workouts and let voice and beep cues guide your transitions.
           </p>
+        </section>
+
+        <section className="myo-card mt-4 p-5">
+          <h2 className="font-semibold">Account</h2>
+          <button onClick={onLogout} className="myo-btn mt-3 w-full">Log out</button>
+          {user?.email && (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              Signed in as {user.email}
+            </p>
+          )}
         </section>
       </div>
     </div>
