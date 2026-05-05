@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthSignUpRouteImport } from './routes/auth.sign-up'
+import { Route as AuthSignInRouteImport } from './routes/auth.sign-in'
 import { Route as WorkoutIdIndexRouteImport } from './routes/workout.$id.index'
 import { Route as WorkoutIdRunRouteImport } from './routes/workout.$id.run'
 import { Route as WorkoutIdEditRouteImport } from './routes/workout.$id.edit'
@@ -25,6 +27,16 @@ const SettingsRoute = SettingsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignUpRoute = AuthSignUpRouteImport.update({
+  id: '/auth/sign-up',
+  path: '/auth/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignInRoute = AuthSignInRouteImport.update({
+  id: '/auth/sign-in',
+  path: '/auth/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WorkoutIdIndexRoute = WorkoutIdIndexRouteImport.update({
@@ -56,6 +68,8 @@ const WorkoutIdAddRoute = WorkoutIdAddRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
   '/workout/$id/add': typeof WorkoutIdAddRoute
   '/workout/$id/done': typeof WorkoutIdDoneRoute
   '/workout/$id/edit': typeof WorkoutIdEditRoute
@@ -65,6 +79,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
   '/workout/$id/add': typeof WorkoutIdAddRoute
   '/workout/$id/done': typeof WorkoutIdDoneRoute
   '/workout/$id/edit': typeof WorkoutIdEditRoute
@@ -75,6 +91,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
   '/workout/$id/add': typeof WorkoutIdAddRoute
   '/workout/$id/done': typeof WorkoutIdDoneRoute
   '/workout/$id/edit': typeof WorkoutIdEditRoute
@@ -86,6 +104,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/settings'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/workout/$id/add'
     | '/workout/$id/done'
     | '/workout/$id/edit'
@@ -95,6 +115,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/settings'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/workout/$id/add'
     | '/workout/$id/done'
     | '/workout/$id/edit'
@@ -104,6 +126,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/settings'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/workout/$id/add'
     | '/workout/$id/done'
     | '/workout/$id/edit'
@@ -114,6 +138,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRoute: typeof SettingsRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignUpRoute: typeof AuthSignUpRoute
   WorkoutIdAddRoute: typeof WorkoutIdAddRoute
   WorkoutIdDoneRoute: typeof WorkoutIdDoneRoute
   WorkoutIdEditRoute: typeof WorkoutIdEditRoute
@@ -135,6 +161,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/sign-up': {
+      id: '/auth/sign-up'
+      path: '/auth/sign-up'
+      fullPath: '/auth/sign-up'
+      preLoaderRoute: typeof AuthSignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/sign-in': {
+      id: '/auth/sign-in'
+      path: '/auth/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/workout/$id/': {
@@ -178,6 +218,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRoute: SettingsRoute,
+  AuthSignInRoute: AuthSignInRoute,
+  AuthSignUpRoute: AuthSignUpRoute,
   WorkoutIdAddRoute: WorkoutIdAddRoute,
   WorkoutIdDoneRoute: WorkoutIdDoneRoute,
   WorkoutIdEditRoute: WorkoutIdEditRoute,
@@ -187,12 +229,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
