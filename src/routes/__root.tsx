@@ -2,6 +2,8 @@ import { Outlet, createRootRoute, HeadContent, Scripts, Link, useLocation, useNa
 import { useEffect } from "react";
 import appCss from "../styles.css?url";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { Toaster } from "@/components/ui/sonner";
+import { UnverifiedBanner } from "@/components/UnverifiedBanner";
 
 function NotFoundComponent() {
   return (
