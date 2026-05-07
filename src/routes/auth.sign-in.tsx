@@ -29,6 +29,19 @@ function SignInPage() {
     navigate({ to: "/" });
   };
 
+  const onGoogle = async () => {
+    setError(null);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setError(result.error instanceof Error ? result.error.message : String(result.error));
+      return;
+    }
+    if (result.redirected) return;
+    navigate({ to: "/" });
+  };
+
   return (
     <div className="honeycomb-bg flex min-h-screen items-center justify-center px-4">
       <div className="myo-card w-full max-w-sm p-6">
