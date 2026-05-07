@@ -52,12 +52,18 @@ function RootComponent() {
   return (
     <AuthProvider>
       <AuthGate>
-        {!location.pathname.startsWith("/auth/") ? <UnverifiedBanner /> : null}
+        <BannerSlot />
         <Outlet />
         <Toaster />
       </AuthGate>
     </AuthProvider>
   );
+}
+
+function BannerSlot() {
+  const location = useLocation();
+  if (location.pathname.startsWith("/auth/")) return null;
+  return <UnverifiedBanner />;
 }
 
 function AuthGate({ children }: { children: React.ReactNode }) {
