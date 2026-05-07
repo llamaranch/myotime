@@ -63,6 +63,11 @@ function SignInPage() {
               className="w-full rounded-lg border border-border bg-secondary px-3 py-2 outline-none focus:border-accent"
             />
           </label>
+          <div className="text-right">
+            <Link to="/auth/forgot-password" className="text-xs text-accent hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <button type="submit" disabled={submitting} className="myo-btn w-full disabled:opacity-60">
             {submitting ? "Logging in…" : "Log in"}
           </button>

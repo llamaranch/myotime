@@ -2,6 +2,8 @@ import { Outlet, createRootRoute, HeadContent, Scripts, Link, useLocation, useNa
 import { useEffect } from "react";
 import appCss from "../styles.css?url";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { Toaster } from "@/components/ui/sonner";
+import { UnverifiedBanner } from "@/components/UnverifiedBanner";
 
 function NotFoundComponent() {
   return (
@@ -50,10 +52,18 @@ function RootComponent() {
   return (
     <AuthProvider>
       <AuthGate>
+        <BannerSlot />
         <Outlet />
+        <Toaster />
       </AuthGate>
     </AuthProvider>
   );
+}
+
+function BannerSlot() {
+  const location = useLocation();
+  if (location.pathname.startsWith("/auth/")) return null;
+  return <UnverifiedBanner />;
 }
 
 function AuthGate({ children }: { children: React.ReactNode }) {
@@ -62,15 +72,18 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const path = location.pathname;
   const isAuthRoute = path.startsWith("/auth/");
+  // These auth routes are valid even when signed in (recovery flow & email confirm callback).
+  const isAuthRouteAllowedWhenSignedIn =
+    path === "/auth/reset-password" || path === "/auth/callback";
 
   useEffect(() => {
     if (loading) return;
     if (!session && !isAuthRoute) {
       navigate({ to: "/auth/sign-in", replace: true });
-    } else if (session && isAuthRoute) {
+    } else if (session && isAuthRoute && !isAuthRouteAllowedWhenSignedIn) {
       navigate({ to: "/", replace: true });
     }
-  }, [loading, session, isAuthRoute, navigate]);
+  }, [loading, session, isAuthRoute, isAuthRouteAllowedWhenSignedIn, navigate]);
 
   if (loading) {
     return <div className="honeycomb-bg min-h-screen" />;
@@ -78,7 +91,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   if (!session && !isAuthRoute) {
     return <div className="honeycomb-bg min-h-screen" />;
   }
-  if (session && isAuthRoute) {
+  if (session && isAuthRoute && !isAuthRouteAllowedWhenSignedIn) {
     return <div className="honeycomb-bg min-h-screen" />;
   }
   return <>{children}</>;
