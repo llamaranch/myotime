@@ -52,7 +52,9 @@ function RootComponent() {
   return (
     <AuthProvider>
       <AuthGate>
+        {!location.pathname.startsWith("/auth/") ? <UnverifiedBanner /> : null}
         <Outlet />
+        <Toaster />
       </AuthGate>
     </AuthProvider>
   );
