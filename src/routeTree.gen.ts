@@ -21,6 +21,7 @@ import { Route as WorkoutIdRunRouteImport } from './routes/workout.$id.run'
 import { Route as WorkoutIdEditRouteImport } from './routes/workout.$id.edit'
 import { Route as WorkoutIdDoneRouteImport } from './routes/workout.$id.done'
 import { Route as WorkoutIdAddRouteImport } from './routes/workout.$id.add'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -82,6 +83,12 @@ const WorkoutIdAddRoute = WorkoutIdAddRouteImport.update({
   path: '/workout/$id/add',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/workout/$id/edit': typeof WorkoutIdEditRoute
   '/workout/$id/run': typeof WorkoutIdRunRoute
   '/workout/$id/': typeof WorkoutIdIndexRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +118,7 @@ export interface FileRoutesByTo {
   '/workout/$id/edit': typeof WorkoutIdEditRoute
   '/workout/$id/run': typeof WorkoutIdRunRoute
   '/workout/$id': typeof WorkoutIdIndexRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +134,7 @@ export interface FileRoutesById {
   '/workout/$id/edit': typeof WorkoutIdEditRoute
   '/workout/$id/run': typeof WorkoutIdRunRoute
   '/workout/$id/': typeof WorkoutIdIndexRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/workout/$id/edit'
     | '/workout/$id/run'
     | '/workout/$id/'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/workout/$id/edit'
     | '/workout/$id/run'
     | '/workout/$id'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -169,6 +181,7 @@ export interface FileRouteTypes {
     | '/workout/$id/edit'
     | '/workout/$id/run'
     | '/workout/$id/'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +197,7 @@ export interface RootRouteChildren {
   WorkoutIdEditRoute: typeof WorkoutIdEditRoute
   WorkoutIdRunRoute: typeof WorkoutIdRunRoute
   WorkoutIdIndexRoute: typeof WorkoutIdIndexRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -272,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkoutIdAddRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -288,7 +309,17 @@ const rootRouteChildren: RootRouteChildren = {
   WorkoutIdEditRoute: WorkoutIdEditRoute,
   WorkoutIdRunRoute: WorkoutIdRunRoute,
   WorkoutIdIndexRoute: WorkoutIdIndexRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
