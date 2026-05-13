@@ -14,6 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          body_parts: string[]
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          types: string[]
+          video_url: string | null
+        }
+        Insert: {
+          body_parts?: string[]
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          types?: string[]
+          video_url?: string | null
+        }
+        Update: {
+          body_parts?: string[]
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          types?: string[]
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      custom_activities: {
+        Row: {
+          body_parts: string[]
+          id: string
+          name: string
+          types: string[]
+          user_id: string
+        }
+        Insert: {
+          body_parts?: string[]
+          id?: string
+          name: string
+          types?: string[]
+          user_id: string
+        }
+        Update: {
+          body_parts?: string[]
+          id?: string
+          name?: string
+          types?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          activity_ref: string
+          id: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          activity_ref: string
+          id?: string
+          source: string
+          user_id: string
+        }
+        Update: {
+          activity_ref?: string
+          id?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      purchases: {
+        Row: {
+          amount_cents: number
+          id: string
+          promo_code: string | null
+          purchased_at: string
+          referral_code: string | null
+          status: string
+          stripe_payment_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          id?: string
+          promo_code?: string | null
+          purchased_at?: string
+          referral_code?: string | null
+          status: string
+          stripe_payment_id: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          id?: string
+          promo_code?: string | null
+          purchased_at?: string
+          referral_code?: string | null
+          status?: string
+          stripe_payment_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_referral_code_fkey"
+            columns: ["referral_code"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      referral_codes: {
+        Row: {
+          active: boolean
+          affiliate_email: string
+          affiliate_name: string
+          code: string
+          commission_percent: number
+          created_at: string
+        }
+        Insert: {
+          active?: boolean
+          affiliate_email: string
+          affiliate_name: string
+          code: string
+          commission_percent: number
+          created_at?: string
+        }
+        Update: {
+          active?: boolean
+          affiliate_email?: string
+          affiliate_name?: string
+          code?: string
+          commission_percent?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string
@@ -44,6 +187,62 @@ export type Database = {
           referred_by_code?: string | null
           settings?: Json | null
           trial_ends_at?: string
+        }
+        Relationships: []
+      }
+      workout_activities: {
+        Row: {
+          duration_seconds: number
+          id: string
+          name: string
+          sort_order: number
+          workout_id: string
+        }
+        Insert: {
+          duration_seconds: number
+          id?: string
+          name: string
+          sort_order?: number
+          workout_id: string
+        }
+        Update: {
+          duration_seconds?: number
+          id?: string
+          name?: string
+          sort_order?: number
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_activities_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          user_id?: string
         }
         Relationships: []
       }
