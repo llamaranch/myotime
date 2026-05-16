@@ -17,7 +17,7 @@ type Tab = "favorites" | "body" | "type";
 function AddActivity() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const [library, setLibrary] = useState<Activity[]>([]);
+  const [library, setLibrary] = useState<Activity[] | null>(null);
   const [prefs, setPrefs] = useState(storage.getPrefs());
   const [tab, setTab] = useState<Tab>("favorites");
   const [search, setSearch] = useState("");
@@ -30,8 +30,10 @@ function AddActivity() {
 
   useEffect(() => { loadLibrary().then(setLibrary); }, []);
 
+  const isLoading = library === null;
+
   const all: Activity[] = useMemo(
-    () => [...library, ...prefs.custom_activities],
+    () => [...(library ?? []), ...prefs.custom_activities],
     [library, prefs.custom_activities]
   );
 
@@ -203,22 +205,26 @@ function AddActivity() {
             </button>
           ) : null}
 
-          <ul className="space-y-1">
-            {tabList.map(a => (
-              <li key={a.id} className="myo-card flex items-center justify-between px-3 py-2">
-                <button onClick={() => onPick(a)} className="flex-1 text-left">{a.name}</button>
-                <button onClick={() => toggleFav(a.name)} aria-label="Toggle favorite" className="px-2">
-                  <Star className={`h-5 w-5 ${isFav(a.name) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
-                </button>
-                <button onClick={() => onPick(a)} aria-label="Add" className="px-2 text-accent">
-                  <Plus className="h-5 w-5" />
-                </button>
-              </li>
-            ))}
-            {tab === "favorites" && tabList.length === 0 && (
-              <li className="text-center text-muted-foreground">No favorites yet. Tap the star on any activity.</li>
-            )}
-          </ul>
+          {isLoading ? (
+            <p className="py-8 text-center text-muted-foreground">Loading activities…</p>
+          ) : (
+            <ul className="space-y-1">
+              {tabList.map(a => (
+                <li key={a.id} className="myo-card flex items-center justify-between px-3 py-2">
+                  <button onClick={() => onPick(a)} className="flex-1 text-left">{a.name}</button>
+                  <button onClick={() => toggleFav(a.name)} aria-label="Toggle favorite" className="px-2">
+                    <Star className={`h-5 w-5 ${isFav(a.name) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+                  </button>
+                  <button onClick={() => onPick(a)} aria-label="Add" className="px-2 text-accent">
+                    <Plus className="h-5 w-5" />
+                  </button>
+                </li>
+              ))}
+              {tab === "favorites" && tabList.length === 0 && (
+                <li className="text-center text-muted-foreground">No favorites yet. Tap the star on any activity.</li>
+              )}
+            </ul>
+          )}
         </div>
 
         {pendingActivity && (
