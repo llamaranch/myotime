@@ -17,7 +17,7 @@ type Tab = "favorites" | "body" | "type";
 function AddActivity() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const [library, setLibrary] = useState<Activity[]>([]);
+  const [library, setLibrary] = useState<Activity[] | null>(null);
   const [prefs, setPrefs] = useState(storage.getPrefs());
   const [tab, setTab] = useState<Tab>("favorites");
   const [search, setSearch] = useState("");
@@ -30,8 +30,10 @@ function AddActivity() {
 
   useEffect(() => { loadLibrary().then(setLibrary); }, []);
 
+  const isLoading = library === null;
+
   const all: Activity[] = useMemo(
-    () => [...library, ...prefs.custom_activities],
+    () => [...(library ?? []), ...prefs.custom_activities],
     [library, prefs.custom_activities]
   );
 
