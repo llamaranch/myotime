@@ -1,4 +1,4 @@
-import type { Workout, UserPreferences, UserSettings } from "./types";
+import type { Workout, UserPreferences, UserSettings, Activity } from "./types";
 import { DEFAULT_PREFS, DEFAULT_SETTINGS } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 
