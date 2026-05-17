@@ -47,5 +47,21 @@ export const DEFAULT_PREFS: UserPreferences = {
   preferred_voice: null,
 };
 
+export interface UserSettings {
+  beep_volume: number;
+  beep_muted: boolean;
+  voice_volume: number;
+  voice_muted: boolean;
+  preferred_voice: string | null;
+}
+
+export const DEFAULT_SETTINGS: UserSettings = {
+  beep_volume: 70,
+  beep_muted: false,
+  voice_volume: 70,
+  voice_muted: false,
+  preferred_voice: null,
+};
+
 export const BODY_PARTS: BodyPart[] = ["arms", "legs", "core", "back", "chest", "full body", "other"];
 export const ACTIVITY_TYPES: ActivityType[] = ["mobility", "cardio", "resistance", "isometric", "calisthenics", "yoga", "other"];

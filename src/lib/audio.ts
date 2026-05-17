@@ -106,7 +106,7 @@ async function playBeep(
 }
 
 export async function playTransitionBeeps(): Promise<void> {
-  const prefs = storage.getPrefs();
+  const prefs = await storage.getSettings();
   if (prefs.beep_muted || prefs.beep_volume === 0) {
     await new Promise((r) => setTimeout(r, 100));
     return;
@@ -123,7 +123,7 @@ export async function playTransitionBeeps(): Promise<void> {
 }
 
 export async function playChime(): Promise<void> {
-  const prefs = storage.getPrefs();
+  const prefs = await storage.getSettings();
   if (prefs.beep_muted || prefs.beep_volume === 0) return;
   const v = (prefs.beep_volume / 100) * 0.5;
 
@@ -158,13 +158,13 @@ if (typeof speechSynthesis !== "undefined") {
   } catch {}
 }
 
-export function speak(text: string): Promise<void> {
-  const prefs = storage.getPrefs();
-  if (prefs.voice_muted || prefs.voice_volume === 0) return Promise.resolve();
-  if (typeof speechSynthesis === "undefined") return Promise.resolve();
-  if (!text || !text.trim()) return Promise.resolve();
+export async function speak(text: string): Promise<void> {
+  const prefs = await storage.getSettings();
+  if (prefs.voice_muted || prefs.voice_volume === 0) return;
+  if (typeof speechSynthesis === "undefined") return;
+  if (!text || !text.trim()) return;
 
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     let done = false;
     const finish = () => {
       if (!done) {

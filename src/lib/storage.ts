@@ -1,5 +1,6 @@
-import type { Workout, UserPreferences } from "./types";
-import { DEFAULT_PREFS } from "./types";
+import type { Workout, UserPreferences, UserSettings } from "./types";
+import { DEFAULT_PREFS, DEFAULT_SETTINGS } from "./types";
+import { supabase } from "@/integrations/supabase/client";
 
 const KEY_WORKOUTS = "myotime.workouts.v1";
 const KEY_PREFS = "myotime.prefs.v1";
@@ -66,6 +67,33 @@ export const storage = {
   savePrefs(prefs: UserPreferences) {
     if (!isBrowser()) return;
     localStorage.setItem(KEY_PREFS, JSON.stringify(prefs));
+  },
+  async getSettings(): Promise<UserSettings> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return DEFAULT_SETTINGS;
+      const { data, error } = await supabase
+        .from("users")
+        .select("settings")
+        .eq("id", session.user.id)
+        .maybeSingle();
+      if (error || !data?.settings) return DEFAULT_SETTINGS;
+      return { ...DEFAULT_SETTINGS, ...(data.settings as Partial<UserSettings>) };
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  },
+  async saveSettings(settings: UserSettings): Promise<void> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      await supabase
+        .from("users")
+        .update({ settings: settings as unknown as never })
+        .eq("id", session.user.id);
+    } catch {
+      // no-op
+    }
   },
 };
 
