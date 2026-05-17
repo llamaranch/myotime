@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
 import { storage } from "@/lib/storage";
-import type { UserPreferences } from "@/lib/types";
+import { DEFAULT_SETTINGS, type UserSettings } from "@/lib/types";
 import { getVoices } from "@/lib/audio";
 import { useAuth } from "@/lib/auth";
 
@@ -12,7 +12,8 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const [prefs, setPrefs] = useState<UserPreferences>(() => storage.getPrefs());
+  const [prefs, setPrefs] = useState<UserSettings>(DEFAULT_SETTINGS);
+  const [loaded, setLoaded] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -23,6 +24,13 @@ function SettingsPage() {
   };
 
   useEffect(() => {
+    storage.getSettings().then((s) => {
+      setPrefs(s);
+      setLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
     const update = () => setVoices(getVoices());
     update();
     if (typeof speechSynthesis !== "undefined") {
@@ -30,11 +38,19 @@ function SettingsPage() {
     }
   }, []);
 
-  const update = (patch: Partial<UserPreferences>) => {
+  const update = (patch: Partial<UserSettings>) => {
     const next = { ...prefs, ...patch };
     setPrefs(next);
-    storage.savePrefs(next);
+    void storage.saveSettings(next);
   };
+
+  if (!loaded) {
+    return (
+      <div className="honeycomb-bg min-h-screen">
+        <div className="mx-auto max-w-xl px-4 pt-6 text-sm text-muted-foreground">Loading…</div>
+      </div>
+    );
+  }
 
   return (
     <div className="honeycomb-bg min-h-screen">
