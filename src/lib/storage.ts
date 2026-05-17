@@ -1,4 +1,4 @@
-import type { Workout, UserPreferences, UserSettings } from "./types";
+import type { Workout, UserPreferences, UserSettings, Activity } from "./types";
 import { DEFAULT_PREFS, DEFAULT_SETTINGS } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -93,6 +93,52 @@ export const storage = {
         .eq("id", session.user.id);
     } catch {
       // no-op
+    }
+  },
+  async getCustomActivities(): Promise<Activity[]> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return [];
+      const { data, error } = await supabase
+        .from("custom_activities")
+        .select("id, name, body_parts, types")
+        .eq("user_id", session.user.id);
+      if (error || !data) return [];
+      return data.map((r) => ({
+        id: r.id,
+        name: r.name,
+        body_parts: r.body_parts,
+        types: r.types,
+        source: "custom" as const,
+      }));
+    } catch {
+      return [];
+    }
+  },
+  async addCustomActivity(input: { name: string; body_parts: string[]; types: string[] }): Promise<Activity | null> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return null;
+      const { data, error } = await supabase
+        .from("custom_activities")
+        .insert({
+          user_id: session.user.id,
+          name: input.name,
+          body_parts: input.body_parts,
+          types: input.types,
+        })
+        .select("id, name, body_parts, types")
+        .single();
+      if (error || !data) return null;
+      return {
+        id: data.id,
+        name: data.name,
+        body_parts: data.body_parts,
+        types: data.types,
+        source: "custom",
+      };
+    } catch {
+      return null;
     }
   },
 };

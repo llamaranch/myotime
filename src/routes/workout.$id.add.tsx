@@ -18,6 +18,7 @@ function AddActivity() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const [library, setLibrary] = useState<Activity[] | null>(null);
+  const [customs, setCustoms] = useState<Activity[] | null>(null);
   const [prefs, setPrefs] = useState(storage.getPrefs());
   const [tab, setTab] = useState<Tab>("favorites");
   const [search, setSearch] = useState("");
@@ -29,12 +30,13 @@ function AddActivity() {
   const [customFav, setCustomFav] = useState(true);
 
   useEffect(() => { loadLibrary().then(setLibrary); }, []);
+  useEffect(() => { storage.getCustomActivities().then(setCustoms); }, []);
 
-  const isLoading = library === null;
+  const isLoading = library === null || customs === null;
 
   const all: Activity[] = useMemo(
-    () => [...(library ?? []), ...prefs.custom_activities],
-    [library, prefs.custom_activities]
+    () => [...(library ?? []), ...(customs ?? [])],
+    [library, customs]
   );
 
   const isFav = (name: string) => prefs.favorites.includes(name.toLowerCase());
@@ -100,29 +102,30 @@ function AddActivity() {
     back();
   };
 
-  const addCustom = () => {
+  const addCustom = async () => {
     const trimmed = customName.trim();
     if (!trimmed) return;
-    if (prefs.custom_activities.length >= MAX_CUSTOM_ACTIVITIES) return;
-    const newAct: Activity = {
-      id: uid(),
+    if ((customs ?? []).length >= MAX_CUSTOM_ACTIVITIES) return;
+    const newAct = await storage.addCustomActivity({
       name: trimmed,
       body_parts: ["other"],
       types: ["other"],
-      source: "custom",
-    };
-    const next = { ...prefs };
-    next.custom_activities = [...next.custom_activities, newAct];
-    if (customFav) next.favorites = [...next.favorites, trimmed.toLowerCase()];
-    setPrefs(next);
-    storage.savePrefs(next);
+    });
+    if (!newAct) return;
+    setCustoms([...(customs ?? []), newAct]);
+    if (customFav) {
+      const next = { ...prefs };
+      next.favorites = [...next.favorites, trimmed.toLowerCase()];
+      setPrefs(next);
+      storage.savePrefs(next);
+    }
     setShowCustom(false);
     setCustomName("");
     setCustomFav(true);
     setPendingActivity(newAct);
   };
 
-  const customLimitReached = prefs.custom_activities.length >= MAX_CUSTOM_ACTIVITIES;
+  const customLimitReached = (customs ?? []).length >= MAX_CUSTOM_ACTIVITIES;
 
   return (
     <div className="honeycomb-bg min-h-screen">
