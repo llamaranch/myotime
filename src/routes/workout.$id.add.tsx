@@ -102,29 +102,30 @@ function AddActivity() {
     back();
   };
 
-  const addCustom = () => {
+  const addCustom = async () => {
     const trimmed = customName.trim();
     if (!trimmed) return;
-    if (prefs.custom_activities.length >= MAX_CUSTOM_ACTIVITIES) return;
-    const newAct: Activity = {
-      id: uid(),
+    if ((customs ?? []).length >= MAX_CUSTOM_ACTIVITIES) return;
+    const newAct = await storage.addCustomActivity({
       name: trimmed,
       body_parts: ["other"],
       types: ["other"],
-      source: "custom",
-    };
-    const next = { ...prefs };
-    next.custom_activities = [...next.custom_activities, newAct];
-    if (customFav) next.favorites = [...next.favorites, trimmed.toLowerCase()];
-    setPrefs(next);
-    storage.savePrefs(next);
+    });
+    if (!newAct) return;
+    setCustoms([...(customs ?? []), newAct]);
+    if (customFav) {
+      const next = { ...prefs };
+      next.favorites = [...next.favorites, trimmed.toLowerCase()];
+      setPrefs(next);
+      storage.savePrefs(next);
+    }
     setShowCustom(false);
     setCustomName("");
     setCustomFav(true);
     setPendingActivity(newAct);
   };
 
-  const customLimitReached = prefs.custom_activities.length >= MAX_CUSTOM_ACTIVITIES;
+  const customLimitReached = (customs ?? []).length >= MAX_CUSTOM_ACTIVITIES;
 
   return (
     <div className="honeycomb-bg min-h-screen">
