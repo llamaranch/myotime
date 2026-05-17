@@ -89,7 +89,7 @@ export const storage = {
       if (!session?.user) return;
       await supabase
         .from("users")
-        .update({ settings: settings as unknown as Record<string, unknown> })
+        .update({ settings: settings as unknown as never })
         .eq("id", session.user.id);
     } catch {
       // no-op
