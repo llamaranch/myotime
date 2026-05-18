@@ -53,19 +53,49 @@ export const storage = {
   getWorkout(id: string): Workout | undefined {
     return this.getWorkouts().find(w => w.id === id);
   },
-  getPrefs(): UserPreferences {
-    if (!isBrowser()) return DEFAULT_PREFS;
+  async getFavorites(): Promise<Favorite[]> {
     try {
-      const raw = localStorage.getItem(KEY_PREFS);
-      if (!raw) return DEFAULT_PREFS;
-      return { ...DEFAULT_PREFS, ...JSON.parse(raw) };
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return [];
+      const { data, error } = await supabase
+        .from("favorites")
+        .select("activity_ref, source")
+        .eq("user_id", session.user.id);
+      if (error || !data) return [];
+      return data.map((r) => ({
+        activity_ref: r.activity_ref as string,
+        source: r.source as "library" | "custom",
+      }));
     } catch {
-      return DEFAULT_PREFS;
+      return [];
     }
   },
-  savePrefs(prefs: UserPreferences) {
-    if (!isBrowser()) return;
-    localStorage.setItem(KEY_PREFS, JSON.stringify(prefs));
+  async addFavorite(activity: { id: string; source: "library" | "custom" }): Promise<void> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      await supabase.from("favorites").insert({
+        user_id: session.user.id,
+        activity_ref: activity.id,
+        source: activity.source,
+      });
+    } catch {
+      // no-op
+    }
+  },
+  async removeFavorite(activity: { id: string; source: "library" | "custom" }): Promise<void> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      await supabase
+        .from("favorites")
+        .delete()
+        .eq("user_id", session.user.id)
+        .eq("activity_ref", activity.id)
+        .eq("source", activity.source);
+    } catch {
+      // no-op
+    }
   },
   async getSettings(): Promise<UserSettings> {
     try {
