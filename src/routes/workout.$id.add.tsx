@@ -19,7 +19,7 @@ function AddActivity() {
   const navigate = useNavigate();
   const [library, setLibrary] = useState<Activity[] | null>(null);
   const [customs, setCustoms] = useState<Activity[] | null>(null);
-  const [prefs, setPrefs] = useState(storage.getPrefs());
+  const [favorites, setFavorites] = useState<Favorite[] | null>(null);
   const [tab, setTab] = useState<Tab>("favorites");
   const [search, setSearch] = useState("");
   const [bodyFilter, setBodyFilter] = useState<string | null>(null);
