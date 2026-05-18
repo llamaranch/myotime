@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Plus, Star } from "lucide-react";
 import { loadLibrary } from "@/lib/activities";
 import { storage, uid, MAX_CUSTOM_ACTIVITIES, MAX_ACTIVITIES_PER_WORKOUT } from "@/lib/storage";
-import type { Activity } from "@/lib/types";
+import type { Activity, Favorite } from "@/lib/types";
 import { BODY_PARTS, ACTIVITY_TYPES } from "@/lib/types";
 import { TimePicker, loadPending, savePending, clearPending } from "./workout.$id.edit";
 
@@ -19,7 +19,7 @@ function AddActivity() {
   const navigate = useNavigate();
   const [library, setLibrary] = useState<Activity[] | null>(null);
   const [customs, setCustoms] = useState<Activity[] | null>(null);
-  const [prefs, setPrefs] = useState(storage.getPrefs());
+  const [favorites, setFavorites] = useState<Favorite[] | null>(null);
   const [tab, setTab] = useState<Tab>("favorites");
   const [search, setSearch] = useState("");
   const [bodyFilter, setBodyFilter] = useState<string | null>(null);
@@ -31,22 +31,29 @@ function AddActivity() {
 
   useEffect(() => { loadLibrary().then(setLibrary); }, []);
   useEffect(() => { storage.getCustomActivities().then(setCustoms); }, []);
+  useEffect(() => { storage.getFavorites().then(setFavorites); }, []);
 
-  const isLoading = library === null || customs === null;
+  const isLoading = library === null || customs === null || favorites === null;
 
   const all: Activity[] = useMemo(
     () => [...(library ?? []), ...(customs ?? [])],
     [library, customs]
   );
 
-  const isFav = (name: string) => prefs.favorites.includes(name.toLowerCase());
+  const isFav = (a: Activity) =>
+    (favorites ?? []).some(f => f.activity_ref === a.id && f.source === a.source);
 
-  const toggleFav = (name: string) => {
-    const key = name.toLowerCase();
-    const next = { ...prefs };
-    next.favorites = isFav(name) ? next.favorites.filter(f => f !== key) : [...next.favorites, key];
-    setPrefs(next);
-    storage.savePrefs(next);
+  const toggleFav = (a: Activity) => {
+    const currentlyFav = isFav(a);
+    if (currentlyFav) {
+      setFavorites((favorites ?? []).filter(
+        f => !(f.activity_ref === a.id && f.source === a.source)
+      ));
+      void storage.removeFavorite({ id: a.id, source: a.source });
+    } else {
+      setFavorites([...(favorites ?? []), { activity_ref: a.id, source: a.source }]);
+      void storage.addFavorite({ id: a.id, source: a.source });
+    }
   };
 
   const searchResults = useMemo(() => {
@@ -57,11 +64,11 @@ function AddActivity() {
 
   const tabList = useMemo(() => {
     const sorted = (arr: Activity[]) => [...arr].sort((a, b) => a.name.localeCompare(b.name));
-    if (tab === "favorites") return sorted(all.filter(a => isFav(a.name)));
+    if (tab === "favorites") return sorted(all.filter(a => isFav(a)));
     if (tab === "body" && bodyFilter) return sorted(all.filter(a => a.body_parts.includes(bodyFilter)));
     if (tab === "type" && typeFilter) return sorted(all.filter(a => a.types.includes(typeFilter)));
     return [];
-  }, [tab, all, bodyFilter, typeFilter, prefs.favorites]);
+  }, [tab, all, bodyFilter, typeFilter, favorites]);
 
   const onPick = (a: Activity) => setPendingActivity(a);
 
@@ -114,10 +121,9 @@ function AddActivity() {
     if (!newAct) return;
     setCustoms([...(customs ?? []), newAct]);
     if (customFav) {
-      const next = { ...prefs };
-      next.favorites = [...next.favorites, trimmed.toLowerCase()];
-      setPrefs(next);
-      storage.savePrefs(next);
+      const newFav: Favorite = { activity_ref: newAct.id, source: "custom" };
+      setFavorites([...(favorites ?? []), newFav]);
+      void storage.addFavorite({ id: newAct.id, source: "custom" });
     }
     setShowCustom(false);
     setCustomName("");
@@ -215,8 +221,8 @@ function AddActivity() {
               {tabList.map(a => (
                 <li key={a.id} className="myo-card flex items-center justify-between px-3 py-2">
                   <button onClick={() => onPick(a)} className="flex-1 text-left">{a.name}</button>
-                  <button onClick={() => toggleFav(a.name)} aria-label="Toggle favorite" className="px-2">
-                    <Star className={`h-5 w-5 ${isFav(a.name) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+                  <button onClick={() => toggleFav(a)} aria-label="Toggle favorite" className="px-2">
+                    <Star className={`h-5 w-5 ${isFav(a) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
                   </button>
                   <button onClick={() => onPick(a)} aria-label="Add" className="px-2 text-accent">
                     <Plus className="h-5 w-5" />

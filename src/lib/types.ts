@@ -27,25 +27,10 @@ export interface Workout {
   order?: number;
 }
 
-export interface UserPreferences {
-  favorites: string[]; // activity names (lowercased) — name-based for stability across library/custom
-  custom_activities: Activity[];
-  beep_volume: number;
-  beep_muted: boolean;
-  voice_volume: number;
-  voice_muted: boolean;
-  preferred_voice: string | null;
+export interface Favorite {
+  activity_ref: string;
+  source: "library" | "custom";
 }
-
-export const DEFAULT_PREFS: UserPreferences = {
-  favorites: ["rest"],
-  custom_activities: [],
-  beep_volume: 70,
-  beep_muted: false,
-  voice_volume: 70,
-  voice_muted: false,
-  preferred_voice: null,
-};
 
 export interface UserSettings {
   beep_volume: number;
