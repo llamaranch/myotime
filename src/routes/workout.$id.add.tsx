@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Plus, Star } from "lucide-react";
 import { loadLibrary } from "@/lib/activities";
 import { storage, uid, MAX_CUSTOM_ACTIVITIES, MAX_ACTIVITIES_PER_WORKOUT } from "@/lib/storage";
-import type { Activity } from "@/lib/types";
+import type { Activity, Favorite } from "@/lib/types";
 import { BODY_PARTS, ACTIVITY_TYPES } from "@/lib/types";
 import { TimePicker, loadPending, savePending, clearPending } from "./workout.$id.edit";
 
