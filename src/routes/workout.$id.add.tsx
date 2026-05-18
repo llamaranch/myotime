@@ -121,10 +121,9 @@ function AddActivity() {
     if (!newAct) return;
     setCustoms([...(customs ?? []), newAct]);
     if (customFav) {
-      const next = { ...prefs };
-      next.favorites = [...next.favorites, trimmed.toLowerCase()];
-      setPrefs(next);
-      storage.savePrefs(next);
+      const newFav: Favorite = { activity_ref: newAct.id, source: "custom" };
+      setFavorites([...(favorites ?? []), newFav]);
+      void storage.addFavorite({ id: newAct.id, source: "custom" });
     }
     setShowCustom(false);
     setCustomName("");
