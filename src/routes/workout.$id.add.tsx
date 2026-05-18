@@ -31,22 +31,29 @@ function AddActivity() {
 
   useEffect(() => { loadLibrary().then(setLibrary); }, []);
   useEffect(() => { storage.getCustomActivities().then(setCustoms); }, []);
+  useEffect(() => { storage.getFavorites().then(setFavorites); }, []);
 
-  const isLoading = library === null || customs === null;
+  const isLoading = library === null || customs === null || favorites === null;
 
   const all: Activity[] = useMemo(
     () => [...(library ?? []), ...(customs ?? [])],
     [library, customs]
   );
 
-  const isFav = (name: string) => prefs.favorites.includes(name.toLowerCase());
+  const isFav = (a: Activity) =>
+    (favorites ?? []).some(f => f.activity_ref === a.id && f.source === a.source);
 
-  const toggleFav = (name: string) => {
-    const key = name.toLowerCase();
-    const next = { ...prefs };
-    next.favorites = isFav(name) ? next.favorites.filter(f => f !== key) : [...next.favorites, key];
-    setPrefs(next);
-    storage.savePrefs(next);
+  const toggleFav = (a: Activity) => {
+    const currentlyFav = isFav(a);
+    if (currentlyFav) {
+      setFavorites((favorites ?? []).filter(
+        f => !(f.activity_ref === a.id && f.source === a.source)
+      ));
+      void storage.removeFavorite({ id: a.id, source: a.source });
+    } else {
+      setFavorites([...(favorites ?? []), { activity_ref: a.id, source: a.source }]);
+      void storage.addFavorite({ id: a.id, source: a.source });
+    }
   };
 
   const searchResults = useMemo(() => {
@@ -57,11 +64,11 @@ function AddActivity() {
 
   const tabList = useMemo(() => {
     const sorted = (arr: Activity[]) => [...arr].sort((a, b) => a.name.localeCompare(b.name));
-    if (tab === "favorites") return sorted(all.filter(a => isFav(a.name)));
+    if (tab === "favorites") return sorted(all.filter(a => isFav(a)));
     if (tab === "body" && bodyFilter) return sorted(all.filter(a => a.body_parts.includes(bodyFilter)));
     if (tab === "type" && typeFilter) return sorted(all.filter(a => a.types.includes(typeFilter)));
     return [];
-  }, [tab, all, bodyFilter, typeFilter, prefs.favorites]);
+  }, [tab, all, bodyFilter, typeFilter, favorites]);
 
   const onPick = (a: Activity) => setPendingActivity(a);
 
