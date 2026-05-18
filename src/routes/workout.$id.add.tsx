@@ -221,8 +221,8 @@ function AddActivity() {
               {tabList.map(a => (
                 <li key={a.id} className="myo-card flex items-center justify-between px-3 py-2">
                   <button onClick={() => onPick(a)} className="flex-1 text-left">{a.name}</button>
-                  <button onClick={() => toggleFav(a.name)} aria-label="Toggle favorite" className="px-2">
-                    <Star className={`h-5 w-5 ${isFav(a.name) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+                  <button onClick={() => toggleFav(a)} aria-label="Toggle favorite" className="px-2">
+                    <Star className={`h-5 w-5 ${isFav(a) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
                   </button>
                   <button onClick={() => onPick(a)} aria-label="Add" className="px-2 text-accent">
                     <Plus className="h-5 w-5" />
