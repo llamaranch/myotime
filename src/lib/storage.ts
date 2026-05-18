@@ -1,9 +1,8 @@
-import type { Workout, UserPreferences, UserSettings, Activity } from "./types";
-import { DEFAULT_PREFS, DEFAULT_SETTINGS } from "./types";
+import type { Workout, UserSettings, Activity, Favorite } from "./types";
+import { DEFAULT_SETTINGS } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 
 const KEY_WORKOUTS = "myotime.workouts.v1";
-const KEY_PREFS = "myotime.prefs.v1";
 
 export const MAX_WORKOUTS = 100;
 export const MAX_ACTIVITIES_PER_WORKOUT = 100;
