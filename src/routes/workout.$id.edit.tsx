@@ -66,38 +66,40 @@ function EditWorkout() {
 
   // Load: prefer pending state (returning from Add Activity), else workout, else empty
   useEffect(() => {
-    const pending = loadPending();
-    if (pending && pending.workoutId === workoutId) {
-      setName(pending.name);
-      setActivities(pending.activities);
-      const w = isNew ? null : storage.getWorkout(workoutId);
-      setOriginal({ name: w?.name ?? "", activities: w?.activities ?? [] });
-      clearPending();
-      return;
-    }
-    // No pending state: load existing workout if it exists, otherwise start empty.
-    // Do NOT redirect to home — this caused new-workout creation to silently
-    // bounce back when the URL changed during navigation.
-    const existing = storage.getWorkout(workoutId);
-    if (existing) {
-      setName(existing.name);
-      setActivities(existing.activities);
-      setOriginal({ name: existing.name, activities: existing.activities });
-    } else {
-      setName("");
-      setActivities([]);
-      setOriginal({ name: "", activities: [] });
-    }
+    void (async () => {
+      const pending = loadPending();
+      if (pending && pending.workoutId === workoutId) {
+        setName(pending.name);
+        setActivities(pending.activities);
+        const w = isNew ? null : await storage.getWorkout(workoutId);
+        setOriginal({ name: w?.name ?? "", activities: w?.activities ?? [] });
+        clearPending();
+        return;
+      }
+      // No pending state: load existing workout if it exists, otherwise start empty.
+      // Do NOT redirect to home — this caused new-workout creation to silently
+      // bounce back when the URL changed during navigation.
+      const existing = await storage.getWorkout(workoutId);
+      if (existing) {
+        setName(existing.name);
+        setActivities(existing.activities);
+        setOriginal({ name: existing.name, activities: existing.activities });
+      } else {
+        setName("");
+        setActivities([]);
+        setOriginal({ name: "", activities: [] });
+      }
+    })();
   }, [workoutId, isNew, navigate]);
 
   const total = useMemo(() => totalDuration(activities), [activities]);
   const dirty = name !== original.name || JSON.stringify(activities) !== JSON.stringify(original.activities);
 
-  const onSave = () => {
+  const onSave = async () => {
     if (!name.trim()) { alert("Please give your workout a name."); return; }
     if (activities.length === 0) { alert("Add at least one activity."); return; }
     const now = Date.now();
-    const existing = storage.getWorkout(workoutId);
+    const existing = await storage.getWorkout(workoutId);
     const w: Workout = {
       id: workoutId,
       name: name.trim(),
@@ -105,7 +107,7 @@ function EditWorkout() {
       created_at: existing?.created_at ?? now,
       updated_at: now,
     };
-    storage.upsertWorkout(w);
+    await storage.upsertWorkout(w);
     router.invalidate();
     navigate({ to: "/workout/$id", params: { id: workoutId } });
   };
