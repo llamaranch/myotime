@@ -18,18 +18,20 @@ function WorkoutDetail() {
   const [workout, setWorkout] = useState<Workout | null>(null);
 
   useEffect(() => {
-    const w = storage.getWorkout(id);
-    if (!w) { navigate({ to: "/" }); return; }
-    setWorkout(w);
+    void (async () => {
+      const w = await storage.getWorkout(id);
+      if (!w) { navigate({ to: "/" }); return; }
+      setWorkout(w);
+    })();
   }, [id, navigate]);
 
   if (!workout) return null;
 
   const total = totalDuration(workout.activities);
 
-  const onDelete = () => {
+  const onDelete = async () => {
     if (confirm(`Delete "${workout.name}"?`)) {
-      storage.deleteWorkout(workout.id);
+      await storage.deleteWorkout(workout.id);
       router.invalidate();
       navigate({ to: "/" });
     }

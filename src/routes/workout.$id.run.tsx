@@ -37,19 +37,25 @@ function RunWorkout() {
 
   // Load workout & start
   useEffect(() => {
-    const w = storage.getWorkout(id);
-    if (!w || w.activities.length === 0) { navigate({ to: "/" }); return; }
-    setWorkout(w);
-    workoutRef.current = w;
-    unlockAudio();
-    requestWakeLock();
-    const cleanup = setupWakeLockReacquire(() => phaseRef.current !== "complete" && phaseRef.current !== "idle");
-    startSequence(w);
+    let cancelled = false;
+    let cleanupReacquire: (() => void) | null = null;
+    void (async () => {
+      const w = await storage.getWorkout(id);
+      if (cancelled) return;
+      if (!w || w.activities.length === 0) { navigate({ to: "/" }); return; }
+      setWorkout(w);
+      workoutRef.current = w;
+      unlockAudio();
+      requestWakeLock();
+      cleanupReacquire = setupWakeLockReacquire(() => phaseRef.current !== "complete" && phaseRef.current !== "idle");
+      startSequence(w);
+    })();
     return () => {
+      cancelled = true;
       stopTick();
       cancelSpeech();
       releaseWakeLock();
-      cleanup();
+      cleanupReacquire?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);

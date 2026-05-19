@@ -46,7 +46,9 @@ function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    setWorkouts(storage.getWorkouts());
+    void (async () => {
+      setWorkouts(await storage.getWorkouts());
+    })();
     loadLibrary();
   }, []);
 
@@ -56,9 +58,9 @@ function HomePage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const persist = (list: Workout[]) => {
+  const persist = async (list: Workout[]) => {
     const withOrder = list.map((w, i) => ({ ...w, order: i }));
-    storage.saveWorkouts(withOrder);
+    await storage.saveWorkouts(withOrder);
     setWorkouts(withOrder);
   };
 
@@ -71,10 +73,10 @@ function HomePage() {
     persist(arrayMove(workouts, oldIndex, newIndex));
   };
 
-  const onDelete = (w: Workout) => {
+  const onDelete = async (w: Workout) => {
     if (!confirm(`Delete "${w.name}"?`)) return;
-    storage.deleteWorkout(w.id);
-    setWorkouts(storage.getWorkouts());
+    await storage.deleteWorkout(w.id);
+    setWorkouts(await storage.getWorkouts());
     router.invalidate();
   };
 
