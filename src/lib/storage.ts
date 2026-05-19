@@ -82,14 +82,26 @@ export const storage = {
       if (!session?.user) return;
       let order = workout.order;
       if (typeof order !== "number") {
-        const { data: maxRow } = await supabase
+        // Try to preserve the existing row's sort_order (edit case).
+        const { data: existing } = await supabase
           .from("workouts")
           .select("sort_order")
+          .eq("id", workout.id)
           .eq("user_id", session.user.id)
-          .order("sort_order", { ascending: false })
-          .limit(1)
           .maybeSingle();
-        order = maxRow ? (maxRow.sort_order ?? 0) + 1 : 0;
+        if (existing && typeof existing.sort_order === "number") {
+          order = existing.sort_order;
+        } else {
+          // New workout — compute next available position.
+          const { data: maxRow } = await supabase
+            .from("workouts")
+            .select("sort_order")
+            .eq("user_id", session.user.id)
+            .order("sort_order", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          order = maxRow ? (maxRow.sort_order ?? 0) + 1 : 0;
+        }
       }
       await supabase.from("workouts").upsert({
         id: workout.id,
