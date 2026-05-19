@@ -15,7 +15,6 @@ export interface WorkoutActivity {
   id: string;
   name: string;
   duration_seconds: number;
-  source: "library" | "custom";
 }
 
 export interface Workout {

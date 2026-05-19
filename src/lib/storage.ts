@@ -1,57 +1,148 @@
-import type { Workout, UserSettings, Activity, Favorite } from "./types";
+import type { Workout, WorkoutActivity, UserSettings, Activity, Favorite } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 import { supabase } from "@/integrations/supabase/client";
-
-const KEY_WORKOUTS = "myotime.workouts.v1";
 
 export const MAX_WORKOUTS = 100;
 export const MAX_ACTIVITIES_PER_WORKOUT = 100;
 export const MAX_CUSTOM_ACTIVITIES = 100;
 
-const isBrowser = () => typeof window !== "undefined" && typeof localStorage !== "undefined";
-
 export const storage = {
-  getWorkouts(): Workout[] {
-    if (!isBrowser()) return [];
+  async getWorkouts(): Promise<Workout[]> {
     try {
-      const raw = localStorage.getItem(KEY_WORKOUTS);
-      const list = raw ? (JSON.parse(raw) as Workout[]) : [];
-      // Migrate: assign sequential order to any workout missing one,
-      // preserving current array position.
-      let needsSave = false;
-      list.forEach((w, i) => {
-        if (typeof w.order !== "number") {
-          w.order = i;
-          needsSave = true;
-        }
-      });
-      list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      if (needsSave) localStorage.setItem(KEY_WORKOUTS, JSON.stringify(list));
-      return list;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return [];
+      const { data: workoutRows, error } = await supabase
+        .from("workouts")
+        .select("id, name, sort_order, created_at")
+        .eq("user_id", session.user.id)
+        .order("sort_order", { ascending: true });
+      if (error || !workoutRows) return [];
+      const results: Workout[] = [];
+      for (const w of workoutRows) {
+        const { data: actRows } = await supabase
+          .from("workout_activities")
+          .select("id, name, duration_seconds, sort_order")
+          .eq("workout_id", w.id)
+          .order("sort_order", { ascending: true });
+        const createdMs = Date.parse(w.created_at);
+        results.push({
+          id: w.id,
+          name: w.name,
+          order: w.sort_order,
+          created_at: createdMs,
+          updated_at: createdMs,
+          activities: (actRows ?? []).map((a): WorkoutActivity => ({
+            id: a.id,
+            name: a.name,
+            duration_seconds: a.duration_seconds,
+          })),
+        });
+      }
+      return results;
     } catch {
       return [];
     }
   },
-  saveWorkouts(workouts: Workout[]) {
-    if (!isBrowser()) return;
-    localStorage.setItem(KEY_WORKOUTS, JSON.stringify(workouts));
-  },
-  upsertWorkout(workout: Workout) {
-    const all = this.getWorkouts();
-    const idx = all.findIndex(w => w.id === workout.id);
-    if (idx >= 0) {
-      all[idx] = { ...workout, order: workout.order ?? all[idx].order ?? idx };
-    } else {
-      const maxOrder = all.reduce((m, w) => Math.max(m, w.order ?? 0), -1);
-      all.push({ ...workout, order: workout.order ?? maxOrder + 1 });
+  async getWorkout(id: string): Promise<Workout | undefined> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return undefined;
+      const { data: w, error } = await supabase
+        .from("workouts")
+        .select("id, name, sort_order, created_at")
+        .eq("id", id)
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      if (error || !w) return undefined;
+      const { data: actRows } = await supabase
+        .from("workout_activities")
+        .select("id, name, duration_seconds, sort_order")
+        .eq("workout_id", id)
+        .order("sort_order", { ascending: true });
+      const createdMs = Date.parse(w.created_at);
+      return {
+        id: w.id,
+        name: w.name,
+        order: w.sort_order,
+        created_at: createdMs,
+        updated_at: createdMs,
+        activities: (actRows ?? []).map((a): WorkoutActivity => ({
+          id: a.id,
+          name: a.name,
+          duration_seconds: a.duration_seconds,
+        })),
+      };
+    } catch {
+      return undefined;
     }
-    this.saveWorkouts(all);
   },
-  deleteWorkout(id: string) {
-    this.saveWorkouts(this.getWorkouts().filter(w => w.id !== id));
+  async upsertWorkout(workout: Workout): Promise<void> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      let order = workout.order;
+      if (typeof order !== "number") {
+        const { data: maxRow } = await supabase
+          .from("workouts")
+          .select("sort_order")
+          .eq("user_id", session.user.id)
+          .order("sort_order", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        order = maxRow ? (maxRow.sort_order ?? 0) + 1 : 0;
+      }
+      await supabase.from("workouts").upsert({
+        id: workout.id,
+        user_id: session.user.id,
+        name: workout.name,
+        sort_order: order,
+      });
+      await supabase
+        .from("workout_activities")
+        .delete()
+        .eq("workout_id", workout.id);
+      if (workout.activities.length > 0) {
+        await supabase.from("workout_activities").insert(
+          workout.activities.map((a, i) => ({
+            id: a.id,
+            workout_id: workout.id,
+            name: a.name,
+            duration_seconds: a.duration_seconds,
+            sort_order: i,
+          })),
+        );
+      }
+    } catch {
+      // no-op
+    }
   },
-  getWorkout(id: string): Workout | undefined {
-    return this.getWorkouts().find(w => w.id === id);
+  async saveWorkouts(workouts: Workout[]): Promise<void> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      for (let i = 0; i < workouts.length; i++) {
+        await supabase
+          .from("workouts")
+          .update({ sort_order: i })
+          .eq("id", workouts[i].id)
+          .eq("user_id", session.user.id);
+      }
+    } catch {
+      // no-op
+    }
+  },
+  async deleteWorkout(id: string): Promise<void> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      await supabase
+        .from("workouts")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", session.user.id);
+    } catch {
+      // no-op
+    }
   },
   async getFavorites(): Promise<Favorite[]> {
     try {

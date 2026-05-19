@@ -82,7 +82,6 @@ function AddActivity() {
       id: uid(),
       name: pendingActivity.name,
       duration_seconds: seconds,
-      source: pendingActivity.source,
     };
     let next = [...pending.activities];
     if (pending.replaceIndex !== null && pending.replaceIndex >= 0 && pending.replaceIndex < next.length) {
